@@ -107,7 +107,7 @@ export function LandingPage() {
 
         <div className="flex items-center justify-center mb-14">
           <Link href="/sign-up">
-            <span className="inline-flex items-center justify-center gap-2 h-12 px-16 md:px-24 rounded-xl font-semibold bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-500 text-white shadow-[0_0_20px_rgba(91,33,182,0.5)] transition-all cursor-pointer">
+            <span className="inline-flex items-center justify-center gap-2 h-12 px-12 sm:px-16 md:px-24 rounded-xl font-semibold bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-500 text-white shadow-[0_0_20px_rgba(91,33,182,0.5)] transition-all cursor-pointer">
               Start now <ArrowRight className="w-4 h-4" />
             </span>
           </Link>

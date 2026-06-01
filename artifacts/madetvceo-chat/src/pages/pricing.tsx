@@ -24,8 +24,8 @@ export function PricingPage() {
         }}
       />
 
-      <div className="relative z-10 max-w-5xl mx-auto px-5 py-14 md:py-20">
-        <div className="flex items-center justify-between mb-12">
+      <div className="relative z-10 max-w-5xl mx-auto px-5 py-8 md:py-14">
+        <div className="flex items-center justify-between mb-8 md:mb-12">
           <Link href={isSignedIn ? "/account" : "/"}>
             <span className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors cursor-pointer">
               <ArrowLeft className="w-4 h-4" /> Back
@@ -39,14 +39,14 @@ export function PricingPage() {
           </div>
         </div>
 
-        <div className="text-center mb-12">
-          <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-primary/40 bg-primary/15 text-primary text-[11px] font-mono uppercase tracking-[0.2em] mb-5">
+        <div className="text-center mb-8 md:mb-12">
+          <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-primary/40 bg-primary/15 text-primary text-[11px] font-mono uppercase tracking-[0.2em] mb-4 md:mb-5">
             <ShieldCheck className="w-3 h-3" /> Unlock the full agent
           </span>
-          <h1 className="text-4xl md:text-5xl font-display font-extrabold tracking-tight bg-gradient-to-r from-white via-primary to-cyan-300 bg-clip-text text-transparent mb-4">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-display font-extrabold tracking-tight bg-gradient-to-r from-white via-primary to-cyan-300 bg-clip-text text-transparent mb-3 md:mb-4">
             Choose your plan
           </h1>
-          <p className="text-slate-300 max-w-xl mx-auto">
+          <p className="text-sm md:text-base text-slate-300 max-w-xl mx-auto px-2">
             Pick a plan to unlock the App Builder, Video Studio, Social Hub, and
             System Tools — everything your AI super agent can build and run.
           </p>

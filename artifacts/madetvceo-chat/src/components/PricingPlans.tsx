@@ -191,7 +191,7 @@ export function PricingPlans({
           {error}
         </div>
       )}
-      <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6 max-w-5xl mx-auto">
         {products.map((product) => {
           const key = tierKey(product.name);
           const copy = PLAN_COPY[key];
@@ -218,7 +218,7 @@ export function PricingPlans({
             <div
               key={product.id}
               className={cn(
-                "relative flex flex-col rounded-3xl border p-7 backdrop-blur-sm transition-all",
+                "relative flex flex-col rounded-3xl border p-6 md:p-7 backdrop-blur-sm transition-all",
                 copy.highlight
                   ? "border-primary/50 bg-gradient-to-b from-primary/[0.12] to-cyan-400/[0.04] shadow-[0_0_40px_rgba(124,58,237,0.25)]"
                   : "border-white/10 bg-white/[0.03] hover:border-white/20",
@@ -241,14 +241,14 @@ export function PricingPlans({
                 </div>
               </div>
 
-              <div className="flex items-end gap-1 mb-6">
-                <span className="text-5xl font-display font-extrabold bg-gradient-to-r from-white to-cyan-200 bg-clip-text text-transparent">
+              <div className="flex items-end gap-1 mb-5 md:mb-6">
+                <span className="text-4xl md:text-5xl font-display font-extrabold bg-gradient-to-r from-white to-cyan-200 bg-clip-text text-transparent">
                   {formatPrice(price.unit_amount, price.currency)}
                 </span>
                 <span className="text-slate-400 mb-2 text-sm">/month</span>
               </div>
 
-              <ul className="space-y-3 mb-7 flex-1">
+              <ul className="space-y-2.5 md:space-y-3 mb-6 md:mb-7 flex-1">
                 {copy.features.map((f) => (
                   <li
                     key={f}
