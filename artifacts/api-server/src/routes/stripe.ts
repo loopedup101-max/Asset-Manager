@@ -4,6 +4,7 @@ import {
   isOwnerEmail,
   getUserTier,
   creditLimitForTier,
+  trialStatus,
 } from "../storage";
 import { stripeService } from "../stripeService";
 import { getUncachableStripeClient } from "../stripeClient";
@@ -112,11 +113,15 @@ router.get("/me", requireAuth, async (req, res) => {
     usage = { used: 0, limit: 0, remaining: 0, unlimited: true };
   }
 
+  // Free tier runs on a time-trial instead of a credit count.
+  const trial = tier === "free" ? trialStatus(user) : null;
+
   res.json({
     user: { id: user.id, email: user.email, role: user.role },
     ...entitlement,
     tier,
     usage,
+    trial,
   });
 });
 

@@ -1,5 +1,5 @@
 import { db, usersTable, usageTable, type User } from "@workspace/db";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, sql, isNull } from "drizzle-orm";
 
 /** Emails that always get free, unlimited access to the entire app. */
 const HARDCODED_OWNER_EMAILS = ["bigfranknitty05@gmail.com"];
@@ -15,12 +15,12 @@ const OWNER_EMAILS = [
 export const BASIC_MONTHLY_LIMIT = 100;
 
 /**
- * Free monthly allowance for signed-in users without a paid plan. Only the
- * "Ask Me Anything" chat is usable on the free tier; every other tool is paid.
- * These are NOT "credits" (credits come with a plan) — just a small free trial
- * of the chat that prompts an upgrade once exhausted.
+ * Free time-trial for signed-in users without a paid plan: a one-time window of
+ * full "Ask Me Anything" chat access that starts on their first message. Every
+ * other tool is paid. When the window elapses we prompt an upgrade. This is NOT
+ * "credits" (credits come with a plan) — just a short free trial of the chat.
  */
-export const FREE_MONTHLY_LIMIT = 5;
+export const FREE_TRIAL_MINUTES = 10;
 
 /** Current usage period as "YYYY-MM" (UTC). Usage resets each calendar month. */
 function currentPeriod(): string {
@@ -226,6 +226,21 @@ export class Storage {
       .returning();
     return user;
   }
+
+  /**
+   * Start the free time-trial clock on first use. Sets trialStartedAt = now only
+   * if it is currently null (idempotent), and returns the effective start time.
+   */
+  async startTrial(userId: string): Promise<Date> {
+    const [row] = await db
+      .update(usersTable)
+      .set({ trialStartedAt: new Date() })
+      .where(and(eq(usersTable.id, userId), isNull(usersTable.trialStartedAt)))
+      .returning();
+    if (row?.trialStartedAt) return row.trialStartedAt;
+    const existing = await this.getUser(userId);
+    return existing?.trialStartedAt ?? new Date();
+  }
 }
 
 export const storage = new Storage();
@@ -274,7 +289,92 @@ export async function getUserTier(user: User): Promise<PlanTier> {
  * Free and Basic are metered; Pro, Business and the owner are unlimited.
  */
 export function creditLimitForTier(tier: PlanTier): number | null {
-  if (tier === "free") return FREE_MONTHLY_LIMIT;
+  // Free is no longer count-metered — it uses a time-based trial (see
+  // trialStatus / FREE_TRIAL_MINUTES). Basic is metered by monthly count;
+  // Pro/Business/owner are unlimited.
   if (tier === "basic") return BASIC_MONTHLY_LIMIT;
   return null;
+}
+
+/**
+ * Shared chat entitlement gate used by BOTH chat endpoints (streaming and the
+ * legacy non-stream one) so the paywall can never be bypassed by hitting a
+ * different route. For free users it starts the time-trial on first use and
+ * blocks once the window elapses; for Basic it checks the monthly credit cap;
+ * Pro/Business/owner are always allowed. This only CHECKS — Basic credits are
+ * consumed by the caller after a real answer is produced.
+ */
+export async function checkChatGate(
+  user: User,
+): Promise<
+  | { ok: true; tier: PlanTier; creditLimit: number | null }
+  | { ok: false; status: number; body: Record<string, unknown> }
+> {
+  const tier = await getUserTier(user);
+
+  if (tier === "free") {
+    const startedAt = await storage.startTrial(user.id);
+    const elapsedMs = Date.now() - startedAt.getTime();
+    if (elapsedMs >= FREE_TRIAL_MINUTES * 60 * 1000) {
+      return {
+        ok: false,
+        status: 402,
+        body: {
+          error: `Your ${FREE_TRIAL_MINUTES}-minute free trial is up. Get a plan to keep chatting and unlock every tool.`,
+          code: "usage_limit_reached",
+        },
+      };
+    }
+  }
+
+  const creditLimit = creditLimitForTier(tier);
+  if (creditLimit !== null) {
+    const used = await storage.getUsageCount(user.id);
+    if (used >= creditLimit) {
+      return {
+        ok: false,
+        status: 402,
+        body: {
+          error: `You've used all ${creditLimit} of your monthly Basic credits. Upgrade to Pro for unlimited AI.`,
+          code: "usage_limit_reached",
+          usage: { used: creditLimit, limit: creditLimit, remaining: 0 },
+        },
+      };
+    }
+  }
+
+  return { ok: true, tier, creditLimit };
+}
+
+export type TrialStatus = {
+  startedAt: string | null;
+  totalSeconds: number;
+  secondsRemaining: number;
+  expired: boolean;
+};
+
+/**
+ * Time-trial status for a free-tier user. Before the first message
+ * (trialStartedAt null) the full window is shown but the clock is not running.
+ */
+export function trialStatus(user: User): TrialStatus {
+  const totalSeconds = FREE_TRIAL_MINUTES * 60;
+  if (!user.trialStartedAt) {
+    return {
+      startedAt: null,
+      totalSeconds,
+      secondsRemaining: totalSeconds,
+      expired: false,
+    };
+  }
+  const elapsed = Math.floor(
+    (Date.now() - user.trialStartedAt.getTime()) / 1000,
+  );
+  const secondsRemaining = Math.max(0, totalSeconds - elapsed);
+  return {
+    startedAt: user.trialStartedAt.toISOString(),
+    totalSeconds,
+    secondsRemaining,
+    expired: secondsRemaining <= 0,
+  };
 }

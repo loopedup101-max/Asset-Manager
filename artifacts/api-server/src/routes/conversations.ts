@@ -11,6 +11,7 @@ import {
   SendMessageParams,
   SendMessageBody,
 } from "@workspace/api-zod";
+import { checkChatGate } from "../storage";
 
 const router: IRouter = Router();
 
@@ -437,6 +438,14 @@ router.post("/conversations/:id/messages", async (req, res): Promise<void> => {
     );
   if (!convo) {
     res.status(404).json({ error: "Conversation not found" });
+    return;
+  }
+
+  // Same paywall gate as the streaming endpoint so this route can't be used to
+  // bypass the free-trial / Basic-credit limits.
+  const gate = await checkChatGate(req.appUser!);
+  if (!gate.ok) {
+    res.status(gate.status).json(gate.body);
     return;
   }
 

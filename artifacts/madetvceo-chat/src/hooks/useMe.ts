@@ -10,6 +10,13 @@ export type Usage = {
   unlimited: boolean;
 };
 
+export type Trial = {
+  startedAt: string | null;
+  totalSeconds: number;
+  secondsRemaining: number;
+  expired: boolean;
+};
+
 export type Me = {
   user: { id: string; email: string | null; role: string };
   entitled: boolean;
@@ -18,6 +25,7 @@ export type Me = {
   status: string | null;
   subscription: unknown;
   usage: Usage;
+  trial: Trial | null;
 };
 
 export function useMe() {

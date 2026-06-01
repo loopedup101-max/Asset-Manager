@@ -6,6 +6,9 @@ export const usersTable = pgTable("users", {
   role: text("role").notNull().default("user"),
   stripeCustomerId: text("stripe_customer_id"),
   stripeSubscriptionId: text("stripe_subscription_id"),
+  // When the free time-trial clock started (set on the user's first chat
+  // message). Null until they begin; never reset once set.
+  trialStartedAt: timestamp("trial_started_at"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

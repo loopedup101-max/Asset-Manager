@@ -197,10 +197,37 @@ export function ChatPage() {
 
   const usage = me?.usage;
   const unlimited = usage?.unlimited ?? false;
-  const remaining = !unlimited && usage ? usage.remaining : null;
   const isFreeTier = me?.tier === "free";
-  const outOfFree = isFreeTier && remaining === 0;
-  const showUsageNudge = !unlimited && remaining !== null && remaining <= 2;
+  // Basic-tier monthly credit countdown (the free tier uses the time trial below).
+  const remaining = !unlimited && !isFreeTier && usage ? usage.remaining : null;
+  const showUsageNudge = remaining !== null && remaining <= 2;
+
+  // Free-tier 10-minute time trial: tick the remaining seconds down locally,
+  // seeded from the server's start time so it stays accurate across refreshes.
+  const trial = me?.trial ?? null;
+  const trialStartedAt = trial?.startedAt ?? null;
+  const trialTotal = trial?.totalSeconds ?? null;
+  const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
+  useEffect(() => {
+    if (!isFreeTier || trialTotal === null) {
+      setSecondsLeft(null);
+      return;
+    }
+    if (!trialStartedAt) {
+      setSecondsLeft(trialTotal);
+      return;
+    }
+    const started = new Date(trialStartedAt).getTime();
+    const compute = () =>
+      Math.max(0, trialTotal - Math.floor((Date.now() - started) / 1000));
+    setSecondsLeft(compute());
+    const iv = setInterval(() => setSecondsLeft(compute()), 1000);
+    return () => clearInterval(iv);
+  }, [isFreeTier, trialStartedAt, trialTotal]);
+
+  const trialExpired = isFreeTier && secondsLeft !== null && secondsLeft <= 0;
+  const formatTime = (s: number) =>
+    `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 
   const { data: conversation } = useGetConversation(convId!, { query: { enabled: !!convId, queryKey: getGetConversationQueryKey(convId!) } });
   const { data: dbMessages, isLoading: messagesLoading } = useListMessages(convId!, { query: { enabled: !!convId, queryKey: getListMessagesQueryKey(convId!) } });
@@ -358,7 +385,7 @@ export function ChatPage() {
   const handleWelcomeSend = useCallback(async () => {
     const text = content.trim();
     if (!text || creatingChat || isStreaming) return;
-    if (outOfFree) {
+    if (trialExpired) {
       setLocation("/pricing");
       return;
     }
@@ -375,7 +402,7 @@ export function ChatPage() {
       console.error("Could not start chat", err);
       setCreatingChat(false);
     }
-  }, [content, creatingChat, isStreaming, outOfFree, createConversation, queryClient, setLocation]);
+  }, [content, creatingChat, isStreaming, trialExpired, createConversation, queryClient, setLocation]);
 
   useEffect(() => {
     if (convId && pendingFirstMessage && pendingFirstMessage.convId === convId) {
@@ -402,24 +429,24 @@ export function ChatPage() {
         <MascotWelcome />
         <div className="shrink-0 px-4 md:px-6 pb-6 pt-2 relative z-10">
           <div className="max-w-3xl mx-auto">
-            {outOfFree ? (
+            {trialExpired ? (
               <Link href="/pricing">
                 <div className="flex items-center justify-center gap-2.5 rounded-2xl border border-primary/40 bg-gradient-to-r from-primary/25 to-cyan-400/10 px-5 py-4 cursor-pointer hover:from-primary/35 transition-all text-center">
                   <Sparkles className="w-5 h-5 text-cyan-300 shrink-0" />
                   <span className="text-sm md:text-base font-semibold text-white">
-                    You've used your free questions — get a plan to keep chatting & unlock every tool
+                    Your free trial time is up — get a plan to keep chatting & unlock every tool
                   </span>
                 </div>
               </Link>
             ) : (
               <>
-                {isFreeTier && remaining !== null && (
+                {isFreeTier && secondsLeft !== null && (
                   <div className="mb-2 text-center text-xs font-medium text-cyan-300/80">
-                    {remaining} free {remaining === 1 ? "question" : "questions"} left ·{" "}
+                    ⏳ {formatTime(secondsLeft)} of free time left ·{" "}
                     <Link href="/pricing">
                       <span className="underline cursor-pointer hover:text-cyan-200">Get a plan</span>
                     </Link>{" "}
-                    for credits & all tools
+                    for unlimited access & all tools
                   </div>
                 )}
                 <div className="relative flex items-end shadow-[0_0_30px_rgba(124,58,237,0.25)] border border-white/15 rounded-2xl bg-white/[0.04] backdrop-blur-md overflow-hidden focus-within:border-primary/50 transition-all">
@@ -541,34 +568,54 @@ export function ChatPage() {
       </div>
 
       <div className="p-6 bg-white/80 backdrop-blur-xl border-t shrink-0 relative z-20">
-        {showUsageNudge && (
+        {isFreeTier && trialExpired ? (
           <div className="max-w-4xl mx-auto mb-3">
             <Link href="/pricing">
-              <div className="flex items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-4 py-2.5 cursor-pointer hover:bg-primary/10 transition-all">
+              <div className="flex items-center justify-center gap-2 rounded-xl border border-primary/40 bg-primary/10 px-4 py-3 cursor-pointer hover:bg-primary/15 transition-all">
                 <Sparkles className="w-4 h-4 text-primary shrink-0" />
                 <span className="text-sm font-semibold text-foreground">
-                  {remaining === 0
-                    ? isFreeTier
-                      ? "You're out of free questions — get a plan to keep going"
-                      : "You're out of credits — upgrade for more"
-                    : `Only ${remaining} ${remaining === 1 ? "message" : "messages"} left — ${isFreeTier ? "get a plan" : "upgrade"} for more`}
+                  Your free trial time is up — get a plan to keep chatting & unlock every tool
                 </span>
               </div>
             </Link>
           </div>
+        ) : isFreeTier && secondsLeft !== null ? (
+          <div className="max-w-4xl mx-auto mb-3 text-center text-xs font-semibold text-primary">
+            ⏳ {formatTime(secondsLeft)} of free time left ·{" "}
+            <Link href="/pricing">
+              <span className="underline cursor-pointer hover:text-primary/80">Get a plan</span>
+            </Link>{" "}
+            for unlimited access
+          </div>
+        ) : (
+          showUsageNudge && (
+            <div className="max-w-4xl mx-auto mb-3">
+              <Link href="/pricing">
+                <div className="flex items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-4 py-2.5 cursor-pointer hover:bg-primary/10 transition-all">
+                  <Sparkles className="w-4 h-4 text-primary shrink-0" />
+                  <span className="text-sm font-semibold text-foreground">
+                    {remaining === 0
+                      ? "You're out of credits — upgrade for more"
+                      : `Only ${remaining} ${remaining === 1 ? "message" : "messages"} left — upgrade for more`}
+                  </span>
+                </div>
+              </Link>
+            </div>
+          )
         )}
         <div className="max-w-4xl mx-auto relative flex items-end shadow-md border border-border rounded-2xl bg-white overflow-hidden focus-within:glow-ring transition-all duration-300">
           <Textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ask me anything — tech, life, the universe..."
-            className="min-h-[60px] max-h-60 resize-none border-0 focus-visible:ring-0 rounded-none shadow-none py-5 px-5 text-base font-medium"
+            disabled={trialExpired}
+            placeholder={trialExpired ? "Your free trial time is up — get a plan to keep chatting" : "Ask me anything — tech, life, the universe..."}
+            className="min-h-[60px] max-h-60 resize-none border-0 focus-visible:ring-0 rounded-none shadow-none py-5 px-5 text-base font-medium disabled:opacity-60"
           />
           <Button
             size="icon"
             onClick={handleSend}
-            disabled={!content.trim() || isStreaming}
+            disabled={!content.trim() || isStreaming || trialExpired}
             className="mb-3 mr-3 shrink-0 h-12 w-12 rounded-xl shadow-lg bg-gradient-to-r from-primary to-blue-600 hover:scale-105 transition-all border-0 disabled:opacity-50 disabled:hover:scale-100"
           >
             <SendHorizontal className="w-6 h-6" />

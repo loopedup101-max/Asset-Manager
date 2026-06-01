@@ -3,7 +3,7 @@ import { eq, asc, and } from "drizzle-orm";
 import { db, conversationsTable, messagesTable } from "@workspace/db";
 import { openai } from "@workspace/integrations-openai-ai-server";
 import { SendMessageParams, SendMessageBody } from "@workspace/api-zod";
-import { storage, getUserTier, creditLimitForTier } from "../storage";
+import { storage, checkChatGate } from "../storage";
 
 const router: IRouter = Router();
 
@@ -151,26 +151,16 @@ router.post("/conversations/:id/messages/stream", async (req, res): Promise<void
     return;
   }
 
-  // Meter the free "Ask Me Anything" chat. Free and Basic tiers have a monthly
-  // allowance; Pro/Business/owner are unlimited. We only CHECK here — the credit
-  // is consumed later, after a real answer is produced. That way a failed,
-  // aborted, or empty request never costs the user a credit.
-  const tier = await getUserTier(req.appUser!);
-  const creditLimit = creditLimitForTier(tier);
-  if (creditLimit !== null) {
-    const used = await storage.getUsageCount(req.appUser!.id);
-    if (used >= creditLimit) {
-      res.status(402).json({
-        error:
-          tier === "free"
-            ? `You've used all ${creditLimit} free messages this month. Get a plan to keep chatting and unlock every tool.`
-            : `You've used all ${creditLimit} of your monthly Basic credits. Upgrade to Pro for unlimited AI.`,
-        code: "usage_limit_reached",
-        usage: { used: creditLimit, limit: creditLimit, remaining: 0 },
-      });
-      return;
-    }
+  // Free tier gets a one-time time-trial of the chat that starts on their first
+  // message. Basic is metered by a monthly action count. Pro/Business/owner are
+  // unlimited. For Basic we only CHECK here — the credit is consumed later, after
+  // a real answer is produced, so a failed/aborted request never costs a credit.
+  const gate = await checkChatGate(req.appUser!);
+  if (!gate.ok) {
+    res.status(gate.status).json(gate.body);
+    return;
   }
+  const { creditLimit } = gate;
 
   const history = await db
     .select()
