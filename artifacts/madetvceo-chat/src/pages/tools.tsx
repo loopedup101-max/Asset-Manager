@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
+import { usePaidAction } from "@/hooks/usePaidAction";
 import {
   FolderOpen, Trash2, RefreshCw, AlertTriangle, CheckCircle2,
   Copy, Terminal, Monitor, Apple, Cpu, FileText, HardDrive,
@@ -424,6 +425,7 @@ type OS = "windows" | "mac" | "linux";
 
 export function ToolsPage() {
   const { toast } = useToast();
+  const { requirePlan } = usePaidAction();
   const [os, setOs] = useState<OS>("windows");
   const [files, setFiles] = useState<FileEntry[]>([]);
   const [scanning, setScanning] = useState(false);
@@ -433,6 +435,7 @@ export function ToolsPage() {
   const dirHandleRef = useRef<FileSystemDirectoryHandle | null>(null);
 
   const copyScript = (script: string, title: string) => {
+    if (!requirePlan()) return;
     navigator.clipboard.writeText(script);
     toast({ title: `Copied: ${title}`, description: "Paste it in your terminal / PowerShell and run." });
   };
@@ -465,6 +468,7 @@ export function ToolsPage() {
   }, []);
 
   const handleGrantAccess = async () => {
+    if (!requirePlan()) return;
     try {
       const dirHandle = await (window as unknown as { showDirectoryPicker: () => Promise<FileSystemDirectoryHandle> }).showDirectoryPicker();
       dirHandleRef.current = dirHandle;

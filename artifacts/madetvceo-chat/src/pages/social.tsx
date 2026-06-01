@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { usePaidAction } from "@/hooks/usePaidAction";
 import { Copy, Plus, Send, RefreshCw, BarChart3, AlertCircle, Link2, CalendarClock, LayoutGrid, CheckCircle2, MoreVertical, Trash2, Zap } from "lucide-react";
 import { SiX, SiYoutube, SiInstagram, SiTiktok, SiFacebook } from "react-icons/si";
 import { FaLinkedinIn } from "react-icons/fa6";
@@ -206,10 +207,12 @@ function ConnectPlatformSheet({ platform }: { platform: typeof PLATFORMS[0] }) {
   
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { requirePlan } = usePaidAction();
   const connectMutation = useConnectSocialAccount();
 
   const handleConnect = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!requirePlan()) return;
     connectMutation.mutate({
       data: {
         platform: platform.id as SocialAccountInputPlatform,
@@ -290,9 +293,11 @@ function CreateContentTab() {
   const createPostMutation = useCreateSocialPost();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { requirePlan } = usePaidAction();
 
   const handleGenerate = () => {
     if (!topic) return;
+    if (!requirePlan()) return;
     generateMutation.mutate({
       data: {
         topic,
@@ -304,6 +309,7 @@ function CreateContentTab() {
   };
 
   const handleSaveDraft = (content: string) => {
+    if (!requirePlan()) return;
     createPostMutation.mutate({
       data: {
         platform,

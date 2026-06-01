@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { usePaidAction } from "@/hooks/usePaidAction";
 import { cn } from "@/lib/utils";
 import {
   Blocks, Sparkles, Loader2, Download, Code2, Monitor, ExternalLink,
@@ -24,6 +25,7 @@ type Device = "desktop" | "tablet" | "mobile";
 
 export function BuilderPage() {
   const { toast } = useToast();
+  const { requirePlan } = usePaidAction();
   const [prompt, setPrompt] = useState("");
   const [building, setBuilding] = useState(false);
   const [html, setHtml] = useState("");
@@ -45,6 +47,7 @@ export function BuilderPage() {
       toast({ title: "Describe your app", description: "Tell the AI what to build.", variant: "destructive" });
       return;
     }
+    if (!requirePlan()) return;
     setBuilding(true);
     setProgressChars(0);
     abortRef.current?.abort();

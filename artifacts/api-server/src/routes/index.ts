@@ -33,10 +33,12 @@ router.use(conversationsRouter);
 router.use(statsRouter);
 
 // --- Paid routes: require an active subscription (owner bypasses) ---
-// Every tool other than the free chat is a paid service.
+// Every tool other than the free chat is a paid service. These require a plan
+// but are NOT metered — only the free "Ask Me Anything" chat consumes usage
+// credits. With a plan, the tools run freely.
 router.use(requireEntitlement);
-router.use(consumeUsageCredit, videoRouter);
-router.use(consumeUsageCredit, builderRouter);
+router.use(videoRouter);
+router.use(builderRouter);
 router.use(socialRouter);
 
 export default router;

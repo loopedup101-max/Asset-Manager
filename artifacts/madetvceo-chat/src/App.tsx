@@ -15,7 +15,6 @@ import {
   useLocation,
   Router as WouterRouter,
 } from "wouter";
-import { Loader2 } from "lucide-react";
 import {
   QueryClientProvider,
   useQueryClient,
@@ -26,7 +25,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Sidebar } from "@/components/chat/sidebar";
 import { Ticker } from "@/components/Ticker";
 import { Mascot } from "@/components/Mascot";
-import { UpgradeWall } from "@/components/UpgradeWall";
+import { PreviewBanner } from "@/components/PreviewBanner";
 import { useMe } from "@/hooks/useMe";
 import { ChatPage } from "@/pages/chat";
 import { SettingsPage } from "@/pages/settings";
@@ -136,14 +135,6 @@ function SignUpPage() {
   );
 }
 
-function LoaderScreen() {
-  return (
-    <div className="flex min-h-[100dvh] items-center justify-center bg-[#070711]">
-      <Loader2 className="w-8 h-8 animate-spin text-primary" />
-    </div>
-  );
-}
-
 function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-dvh w-full bg-background overflow-hidden">
@@ -169,41 +160,28 @@ function RequireSignIn({ children }: { children: React.ReactNode }) {
   );
 }
 
-// A paid tool: signed-in users see it, but without an active plan they get an
-// upgrade wall instead of the tool. The free chat always stays available.
-function PaidRoute({
-  title,
-  description,
-  children,
-}: {
-  title: string;
-  description: string;
-  children: React.ReactNode;
-}) {
+// A paid tool: ANY signed-in user can open and see the tool. Without an active
+// plan they get a preview banner inviting them to upgrade, and the tool's
+// actions prompt for a plan when used. The free chat always stays available.
+function ToolRoute({ children }: { children: React.ReactNode }) {
   return (
     <RequireSignIn>
       <AppLayout>
-        <PaidGate title={title} description={description}>
-          {children}
-        </PaidGate>
+        <ToolPreviewGate>{children}</ToolPreviewGate>
       </AppLayout>
     </RequireSignIn>
   );
 }
 
-function PaidGate({
-  title,
-  description,
-  children,
-}: {
-  title: string;
-  description: string;
-  children: React.ReactNode;
-}) {
-  const { data, isLoading, isError } = useMe();
-  if (isLoading || (!data && !isError)) return <LoaderScreen />;
-  if (data?.entitled) return <>{children}</>;
-  return <UpgradeWall title={title} description={description} />;
+function ToolPreviewGate({ children }: { children: React.ReactNode }) {
+  const { data } = useMe();
+  const showUpgrade = !!data && !data.entitled;
+  return (
+    <>
+      {showUpgrade && <PreviewBanner />}
+      {children}
+    </>
+  );
 }
 
 // Home: public landing for signed-out, the free chat for any signed-in user.
@@ -307,42 +285,30 @@ function ClerkProviderWithRoutes() {
             </Route>
             <Route path="/social">
               {() => (
-                <PaidRoute
-                  title="Social Hub"
-                  description="Auto-post and run all your social accounts from one place — your AI agent writes, schedules, and publishes everywhere."
-                >
+                <ToolRoute>
                   <SocialPage />
-                </PaidRoute>
+                </ToolRoute>
               )}
             </Route>
             <Route path="/builder">
               {() => (
-                <PaidRoute
-                  title="App Builder"
-                  description="Describe an app and your agent builds and ships a full-stack, deployable product for you."
-                >
+                <ToolRoute>
                   <BuilderPage />
-                </PaidRoute>
+                </ToolRoute>
               )}
             </Route>
             <Route path="/studio">
               {() => (
-                <PaidRoute
-                  title="Video Studio"
-                  description="Go from script to finished, ready-to-upload videos — your agent handles the whole pipeline."
-                >
+                <ToolRoute>
                   <StudioPage />
-                </PaidRoute>
+                </ToolRoute>
               )}
             </Route>
             <Route path="/tools">
               {() => (
-                <PaidRoute
-                  title="System Tools"
-                  description="Advanced automation and power tools for your AI agent to run any task end to end."
-                >
+                <ToolRoute>
                   <ToolsPage />
-                </PaidRoute>
+                </ToolRoute>
               )}
             </Route>
             <Route path="/settings">

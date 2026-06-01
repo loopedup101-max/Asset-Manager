@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
+import { usePaidAction } from "@/hooks/usePaidAction";
 import { renderVideo, type RenderScene } from "@/lib/videoRenderer";
 import {
   Clapperboard, Sparkles, Wand2, Download, Loader2, Upload, Trash2,
@@ -95,6 +96,7 @@ function FilmStrip({ active }: { active?: boolean }) {
 
 export function StudioPage() {
   const { toast } = useToast();
+  const { requirePlan } = usePaidAction();
 
   // ---- AI Video Maker state ----
   const [topic, setTopic] = useState("");
@@ -159,6 +161,7 @@ export function StudioPage() {
       toast({ title: "Add a topic", description: "Tell me what the video should be about.", variant: "destructive" });
       return;
     }
+    if (!requirePlan()) return;
     setGenerating(true);
     if (resultUrl.startsWith("blob:")) URL.revokeObjectURL(resultUrl);
     setResultUrl("");
@@ -264,6 +267,7 @@ export function StudioPage() {
       toast({ title: "Add narration text first", variant: "destructive" });
       return;
     }
+    if (!requirePlan()) return;
     try {
       const narr = await apiPost<{ audio: string }>("/video/narration", { text: scene.narration, voice });
       updateScene(id, { narrationUrl: narr.audio });
