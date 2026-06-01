@@ -449,11 +449,8 @@ export function ChatPage() {
                   <span className="flex items-center gap-2.5">
                     <Sparkles className="w-5 h-5 text-cyan-300 shrink-0" />
                     <span className="text-sm md:text-base font-semibold text-white">
-                      Your free time is up — get a plan to keep chatting & unlock every tool
+                      Get a plan to keep chatting & unlock every tool
                     </span>
-                  </span>
-                  <span className="text-xs text-cyan-200/70">
-                    You'll also get 10 more free minutes every 24 hours
                   </span>
                 </div>
               </Link>
@@ -585,11 +582,8 @@ export function ChatPage() {
                 <span className="flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-primary shrink-0" />
                   <span className="text-sm font-semibold text-foreground">
-                    Your free time is up — get a plan to keep chatting & unlock every tool
+                    Get a plan to keep chatting & unlock every tool
                   </span>
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  You'll also get 10 more free minutes every 24 hours
                 </span>
               </div>
             </Link>
@@ -616,7 +610,7 @@ export function ChatPage() {
             onChange={(e) => setContent(e.target.value)}
             onKeyDown={handleKeyDown}
             disabled={trialExpired}
-            placeholder={trialExpired ? "Your free trial time is up — get a plan to keep chatting" : "Ask me anything — tech, life, the universe..."}
+            placeholder={trialExpired ? "Get a plan to keep chatting" : "Ask me anything — tech, life, the universe..."}
             className="min-h-[60px] max-h-60 resize-none border-0 focus-visible:ring-0 rounded-none shadow-none py-5 px-5 text-base font-medium disabled:opacity-60"
           />
           <Button
