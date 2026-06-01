@@ -4,6 +4,7 @@ import { z } from "zod/v4";
 
 export const conversationsTable = pgTable("conversations", {
   id: serial("id").primaryKey(),
+  userId: text("user_id"),
   title: text("title").notNull().default("New Conversation"),
   lastMessage: text("last_message"),
   messageCount: integer("message_count").notNull().default(0),
@@ -13,6 +14,7 @@ export const conversationsTable = pgTable("conversations", {
 
 export const insertConversationSchema = createInsertSchema(conversationsTable).omit({
   id: true,
+  userId: true,
   createdAt: true,
   updatedAt: true,
 });

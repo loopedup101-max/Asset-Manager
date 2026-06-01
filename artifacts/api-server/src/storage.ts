@@ -140,6 +140,29 @@ export class Storage {
     return row.count;
   }
 
+  /**
+   * Atomically consume one credit IF the user is under `limit` for the current
+   * period. Returns `{ consumed }` — false when the cap is already reached. This
+   * is a single conditional upsert so concurrent requests cannot overshoot the
+   * monthly cap (no check-then-increment race).
+   */
+  async consumeBasicCredit(
+    userId: string,
+    limit: number,
+  ): Promise<{ consumed: boolean; count: number }> {
+    const rows = await db
+      .insert(usageTable)
+      .values({ userId, period: currentPeriod(), count: 1 })
+      .onConflictDoUpdate({
+        target: [usageTable.userId, usageTable.period],
+        set: { count: sql`${usageTable.count} + 1`, updatedAt: new Date() },
+        setWhere: sql`${usageTable.count} < ${limit}`,
+      })
+      .returning();
+    if (rows.length === 0) return { consumed: false, count: limit };
+    return { consumed: true, count: rows[0].count };
+  }
+
   // ---- App users ----
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db

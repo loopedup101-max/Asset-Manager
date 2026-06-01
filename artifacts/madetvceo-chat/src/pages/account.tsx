@@ -12,6 +12,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { useMe } from "@/hooks/useMe";
+import { cn } from "@/lib/utils";
 
 export function AccountPage() {
   const { user } = useUser();
@@ -53,6 +54,9 @@ export function AccountPage() {
   const isOwner = me?.plan === "owner";
   const entitled = me?.entitled ?? false;
   const email = me?.user.email ?? user?.primaryEmailAddress?.emailAddress ?? "";
+  const tier = me?.tier ?? null;
+  const usage = me?.usage;
+  const showUsage = tier === "basic" && usage && !usage.unlimited;
 
   return (
     <div className="flex-1 overflow-y-auto bg-[#070711] relative">
@@ -126,7 +130,8 @@ export function AccountPage() {
                   Subscription active
                 </h2>
                 <p className="text-sm text-slate-400 capitalize">
-                  Status: {me?.status ?? "active"}
+                  {tier ? `${tier} plan` : "Subscription"} ·{" "}
+                  {me?.status ?? "active"}
                 </p>
               </div>
             </div>
@@ -134,19 +139,60 @@ export function AccountPage() {
               You have full access to the App Builder, Video Studio, Social Hub,
               and System Tools.
             </p>
-            <button
-              type="button"
-              onClick={openPortal}
-              disabled={portalLoading}
-              className="inline-flex items-center gap-2 h-12 px-6 rounded-xl font-semibold text-sm bg-white/5 border border-white/15 hover:bg-white/10 text-white transition-all disabled:opacity-60"
-            >
-              {portalLoading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <CreditCard className="w-4 h-4" />
+
+            {showUsage && usage && (
+              <div className="mb-6 rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-semibold text-white">
+                    Monthly AI usage
+                  </span>
+                  <span className="text-sm text-slate-300">
+                    {usage.used} / {usage.limit} actions
+                  </span>
+                </div>
+                <div className="h-2 rounded-full bg-white/10 overflow-hidden">
+                  <div
+                    className={cn(
+                      "h-full rounded-full transition-all",
+                      usage.remaining === 0
+                        ? "bg-gradient-to-r from-red-500 to-orange-400"
+                        : "bg-gradient-to-r from-cyan-400 to-primary",
+                    )}
+                    style={{
+                      width: `${Math.min(100, (usage.used / (usage.limit || 1)) * 100)}%`,
+                    }}
+                  />
+                </div>
+                <p className="text-xs text-slate-500 mt-2">
+                  {usage.remaining === 0
+                    ? "You've reached your monthly limit. Upgrade for unlimited AI."
+                    : `${usage.remaining} actions remaining this month — resets at the start of each month.`}
+                </p>
+              </div>
+            )}
+
+            <div className="flex flex-wrap gap-3">
+              {tier === "basic" && (
+                <Link href="/pricing">
+                  <span className="inline-flex items-center gap-2 h-12 px-6 rounded-xl font-semibold text-sm bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-500 text-white shadow-[0_0_20px_rgba(91,33,182,0.5)] transition-all cursor-pointer">
+                    <Sparkles className="w-4 h-4" /> Upgrade to Pro
+                  </span>
+                </Link>
               )}
-              Manage billing
-            </button>
+              <button
+                type="button"
+                onClick={openPortal}
+                disabled={portalLoading}
+                className="inline-flex items-center gap-2 h-12 px-6 rounded-xl font-semibold text-sm bg-white/5 border border-white/15 hover:bg-white/10 text-white transition-all disabled:opacity-60"
+              >
+                {portalLoading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <CreditCard className="w-4 h-4" />
+                )}
+                Manage billing
+              </button>
+            </div>
           </div>
         ) : (
           <div className="rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-8 text-center">

@@ -34,6 +34,7 @@ import { ToolsPage } from "@/pages/tools";
 import { StudioPage } from "@/pages/studio";
 import { BuilderPage } from "@/pages/builder";
 import { TermsPage } from "@/pages/terms";
+import { PrivacyPage } from "@/pages/privacy";
 import { LandingPage } from "@/pages/landing";
 import { PricingPage } from "@/pages/pricing";
 import { AccountPage } from "@/pages/account";
@@ -324,6 +325,7 @@ function ClerkProviderWithRoutes() {
               )}
             </Route>
             <Route path="/terms" component={TermsPage} />
+            <Route path="/privacy" component={PrivacyPage} />
             <Route component={NotFound} />
           </Switch>
         </TooltipProvider>

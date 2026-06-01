@@ -6,7 +6,7 @@ export function Mascot() {
       <img
         src={mascotImg}
         alt="Made Super AI agent"
-        className="w-24 lg:w-28 drop-shadow-[0_8px_20px_rgba(76,29,149,0.35)] animate-float"
+        className="w-16 lg:w-20 drop-shadow-[0_8px_20px_rgba(76,29,149,0.35)] animate-float"
         draggable={false}
       />
     </div>

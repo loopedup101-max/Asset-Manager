@@ -1,5 +1,10 @@
 import { Router, type IRouter, type Request } from "express";
-import { storage, isOwnerEmail } from "../storage";
+import {
+  storage,
+  isOwnerEmail,
+  getUserTier,
+  BASIC_MONTHLY_LIMIT,
+} from "../storage";
 import { stripeService } from "../stripeService";
 import { requireAuth } from "../middlewares/requireAuth";
 import type { User } from "@workspace/db";
@@ -72,9 +77,28 @@ router.get("/stripe/products-with-prices", async (_req, res) => {
 router.get("/me", requireAuth, async (req, res) => {
   const user = req.appUser!;
   const entitlement = await computeEntitlement(user);
+  const tier = await getUserTier(user);
+
+  let usage:
+    | { used: number; limit: number; remaining: number; unlimited: boolean }
+    | null = null;
+  if (tier === "basic") {
+    const used = await storage.getUsageCount(user.id);
+    usage = {
+      used,
+      limit: BASIC_MONTHLY_LIMIT,
+      remaining: Math.max(0, BASIC_MONTHLY_LIMIT - used),
+      unlimited: false,
+    };
+  } else if (tier) {
+    usage = { used: 0, limit: 0, remaining: 0, unlimited: true };
+  }
+
   res.json({
     user: { id: user.id, email: user.email, role: user.role },
     ...entitlement,
+    tier,
+    usage,
   });
 });
 

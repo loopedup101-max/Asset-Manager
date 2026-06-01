@@ -197,6 +197,27 @@ export function ChatPage() {
       });
 
       if (!response.ok || !response.body) {
+        let msg = "Something went wrong. Please try again.";
+        try {
+          const err = await response.json();
+          if (err?.error) msg = err.error;
+        } catch {
+          /* non-JSON error body */
+        }
+        const note =
+          response.status === 402
+            ? `⚠️ ${msg}\n\nOpen **Pricing** from the sidebar to upgrade your plan.`
+            : msg;
+        setStreamingMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now(),
+            conversationId: convId,
+            role: "assistant" as const,
+            content: note,
+            createdAt: new Date().toISOString(),
+          },
+        ]);
         setIsStreaming(false);
         return;
       }

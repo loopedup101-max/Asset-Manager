@@ -237,11 +237,19 @@ export function Sidebar({ className, isMobile = false }: { className?: string, i
         </div>
 
         <div className="px-1 text-center pt-1">
-          <Link href="/terms">
-            <span className="text-[11px] text-white/40 hover:text-white/70 transition-colors cursor-pointer">
-              Terms &amp; Conditions
-            </span>
-          </Link>
+          <div className="flex items-center justify-center gap-2">
+            <Link href="/terms">
+              <span className="text-[11px] text-white/40 hover:text-white/70 transition-colors cursor-pointer">
+                Terms
+              </span>
+            </Link>
+            <span className="text-[11px] text-white/20">·</span>
+            <Link href="/privacy">
+              <span className="text-[11px] text-white/40 hover:text-white/70 transition-colors cursor-pointer">
+                Privacy
+              </span>
+            </Link>
+          </div>
           <p className="text-[10px] text-white/30 mt-0.5">
             © {new Date().getFullYear()} MadeTVProducts. All rights reserved.
           </p>

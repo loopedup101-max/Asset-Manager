@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 import { db, conversationsTable, messagesTable } from "@workspace/db";
 import {
   CreateConversationBody,
@@ -274,6 +274,7 @@ router.get("/conversations", async (req, res): Promise<void> => {
   const conversations = await db
     .select()
     .from(conversationsTable)
+    .where(eq(conversationsTable.userId, req.appUser!.id))
     .orderBy(desc(conversationsTable.updatedAt));
   res.json(conversations.map(c => ({
     ...c,
@@ -290,7 +291,7 @@ router.post("/conversations", async (req, res): Promise<void> => {
   }
   const [convo] = await db
     .insert(conversationsTable)
-    .values({ title: parsed.data.title })
+    .values({ title: parsed.data.title, userId: req.appUser!.id })
     .returning();
   res.status(201).json({
     ...convo,
@@ -308,7 +309,12 @@ router.get("/conversations/:id", async (req, res): Promise<void> => {
   const [convo] = await db
     .select()
     .from(conversationsTable)
-    .where(eq(conversationsTable.id, params.data.id));
+    .where(
+      and(
+        eq(conversationsTable.id, params.data.id),
+        eq(conversationsTable.userId, req.appUser!.id),
+      ),
+    );
   if (!convo) {
     res.status(404).json({ error: "Conversation not found" });
     return;
@@ -334,7 +340,12 @@ router.patch("/conversations/:id", async (req, res): Promise<void> => {
   const [convo] = await db
     .update(conversationsTable)
     .set({ ...parsed.data, updatedAt: new Date() })
-    .where(eq(conversationsTable.id, params.data.id))
+    .where(
+      and(
+        eq(conversationsTable.id, params.data.id),
+        eq(conversationsTable.userId, req.appUser!.id),
+      ),
+    )
     .returning();
   if (!convo) {
     res.status(404).json({ error: "Conversation not found" });
@@ -353,15 +364,23 @@ router.delete("/conversations/:id", async (req, res): Promise<void> => {
     res.status(400).json({ error: params.error.message });
     return;
   }
-  await db.delete(messagesTable).where(eq(messagesTable.conversationId, params.data.id));
-  const [convo] = await db
-    .delete(conversationsTable)
-    .where(eq(conversationsTable.id, params.data.id))
-    .returning();
-  if (!convo) {
+  const [owned] = await db
+    .select()
+    .from(conversationsTable)
+    .where(
+      and(
+        eq(conversationsTable.id, params.data.id),
+        eq(conversationsTable.userId, req.appUser!.id),
+      ),
+    );
+  if (!owned) {
     res.status(404).json({ error: "Conversation not found" });
     return;
   }
+  await db.delete(messagesTable).where(eq(messagesTable.conversationId, params.data.id));
+  await db
+    .delete(conversationsTable)
+    .where(eq(conversationsTable.id, params.data.id));
   res.sendStatus(204);
 });
 
@@ -374,7 +393,12 @@ router.get("/conversations/:id/messages", async (req, res): Promise<void> => {
   const [convo] = await db
     .select()
     .from(conversationsTable)
-    .where(eq(conversationsTable.id, params.data.id));
+    .where(
+      and(
+        eq(conversationsTable.id, params.data.id),
+        eq(conversationsTable.userId, req.appUser!.id),
+      ),
+    );
   if (!convo) {
     res.status(404).json({ error: "Conversation not found" });
     return;
@@ -405,7 +429,12 @@ router.post("/conversations/:id/messages", async (req, res): Promise<void> => {
   const [convo] = await db
     .select()
     .from(conversationsTable)
-    .where(eq(conversationsTable.id, params.data.id));
+    .where(
+      and(
+        eq(conversationsTable.id, params.data.id),
+        eq(conversationsTable.userId, req.appUser!.id),
+      ),
+    );
   if (!convo) {
     res.status(404).json({ error: "Conversation not found" });
     return;

@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { eq, asc } from "drizzle-orm";
+import { eq, asc, and } from "drizzle-orm";
 import { db, conversationsTable, messagesTable } from "@workspace/db";
 import { openai } from "@workspace/integrations-openai-ai-server";
 import { SendMessageParams, SendMessageBody } from "@workspace/api-zod";
@@ -103,7 +103,12 @@ router.post("/conversations/:id/messages/stream", async (req, res): Promise<void
   const [convo] = await db
     .select()
     .from(conversationsTable)
-    .where(eq(conversationsTable.id, params.data.id));
+    .where(
+      and(
+        eq(conversationsTable.id, params.data.id),
+        eq(conversationsTable.userId, req.appUser!.id),
+      ),
+    );
 
   if (!convo) {
     res.status(404).json({ error: "Conversation not found" });

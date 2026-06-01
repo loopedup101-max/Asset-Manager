@@ -23,16 +23,22 @@ export const consumeUsageCredit: RequestHandler = async (req, res, next) => {
       next();
       return;
     }
-    const used = await storage.getUsageCount(user.id);
-    if (used >= BASIC_MONTHLY_LIMIT) {
+    const { consumed } = await storage.consumeBasicCredit(
+      user.id,
+      BASIC_MONTHLY_LIMIT,
+    );
+    if (!consumed) {
       res.status(402).json({
         error: `You've used all ${BASIC_MONTHLY_LIMIT} of your monthly Basic credits. Upgrade to Pro for unlimited AI.`,
         code: "usage_limit_reached",
-        usage: { used, limit: BASIC_MONTHLY_LIMIT, remaining: 0 },
+        usage: {
+          used: BASIC_MONTHLY_LIMIT,
+          limit: BASIC_MONTHLY_LIMIT,
+          remaining: 0,
+        },
       });
       return;
     }
-    await storage.incrementUsage(user.id);
     next();
   } catch (err) {
     req.log.error({ err }, "Usage metering failed; allowing request");

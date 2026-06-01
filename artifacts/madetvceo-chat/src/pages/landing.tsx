@@ -13,7 +13,6 @@ import {
   Zap,
 } from "lucide-react";
 import mascotImg from "@/assets/mascot.png";
-import { PricingPlans } from "@/components/PricingPlans";
 
 const CAPABILITIES = [
   { icon: MessageSquare, label: "AI Agent Chat", desc: "Ask anything, get answers" },
@@ -106,17 +105,12 @@ export function LandingPage() {
           things for you. Apps, videos, social content, and more.
         </p>
 
-        <div className="flex flex-wrap items-center justify-center gap-3 mb-14">
+        <div className="flex items-center justify-center mb-14">
           <Link href="/sign-up">
-            <span className="inline-flex items-center gap-2 h-12 px-7 rounded-xl font-semibold bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-500 text-white shadow-[0_0_20px_rgba(91,33,182,0.5)] transition-all cursor-pointer">
+            <span className="inline-flex items-center justify-center gap-2 h-12 px-16 md:px-24 rounded-xl font-semibold bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-500 text-white shadow-[0_0_20px_rgba(91,33,182,0.5)] transition-all cursor-pointer">
               Start now <ArrowRight className="w-4 h-4" />
             </span>
           </Link>
-          <a href="#pricing">
-            <span className="inline-flex items-center gap-2 h-12 px-7 rounded-xl font-semibold border border-white/15 bg-white/5 hover:bg-white/10 text-white transition-all cursor-pointer">
-              <Sparkles className="w-4 h-4 text-cyan-300" /> View pricing
-            </span>
-          </a>
         </div>
 
         {/* capability matrix */}
@@ -141,17 +135,21 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* pricing */}
-      <section id="pricing" className="relative z-10 max-w-5xl mx-auto px-5 pb-24 scroll-mt-8">
-        <div className="text-center mb-12">
+      {/* pricing CTA */}
+      <section className="relative z-10 max-w-3xl mx-auto px-5 pb-24 text-center">
+        <div className="rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-10">
           <h2 className="text-3xl md:text-4xl font-display font-extrabold tracking-tight bg-gradient-to-r from-white to-cyan-200 bg-clip-text text-transparent mb-3">
             Simple, premium pricing
           </h2>
-          <p className="text-slate-400 max-w-lg mx-auto">
+          <p className="text-slate-400 max-w-lg mx-auto mb-8">
             Unlock the full agent and every tool. Cancel anytime.
           </p>
+          <Link href="/pricing">
+            <span className="inline-flex items-center gap-2 h-12 px-7 rounded-xl font-semibold bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-500 text-white shadow-[0_0_20px_rgba(91,33,182,0.5)] transition-all cursor-pointer">
+              <Sparkles className="w-4 h-4" /> View pricing &amp; plans
+            </span>
+          </Link>
         </div>
-        <PricingPlans />
       </section>
 
       <footer className="relative z-10 border-t border-white/5 py-8 text-center">
