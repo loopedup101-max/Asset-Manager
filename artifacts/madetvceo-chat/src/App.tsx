@@ -7,6 +7,7 @@ import { Ticker } from "@/components/Ticker";
 import { ChatPage } from "@/pages/chat";
 import { SettingsPage } from "@/pages/settings";
 import { SocialPage } from "@/pages/social";
+import { ToolsPage } from "@/pages/tools";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient();
@@ -31,6 +32,7 @@ function Router() {
         <Route path="/c/:id" component={ChatPage} />
         <Route path="/settings" component={SettingsPage} />
         <Route path="/social" component={SocialPage} />
+        <Route path="/tools" component={ToolsPage} />
         <Route component={NotFound} />
       </Switch>
     </Layout>
