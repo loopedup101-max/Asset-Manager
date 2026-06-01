@@ -1,0 +1,53 @@
+Publish your app
+Domain
+Available
+asset-manager-loopedup101
+.replit.app
+What you're publishing
+MadeTVCEO Chat
+MadeTVCEO Chat
+URL
+https://asset-manager-loopedup101.replit.app/
+Who can access your app
+
+Public
+Anyone on the internet with the URL
+Database settings
+Production database
+Manage production database creation and how it's populated when publishing. Learn more
+
+Create production database
+A production database is required for Stripe integration.
+
+Set up your production database with your current development data
+This will initialize your production database with the data and schemas from your development database.
+Monitoring tools
+Enable app monitoring
+Be the first to know when your app is down. We'll continuously check if your app is online and notify you via email if things go wrong.
+
+Stripe connection
+Connect your live Stripe account
+Read docs
+Claim your sandbox in Stripe
+2
+Activate your live Stripe account
+
+Got it
+What is a live Stripe account?
+Your live Stripe account needs to be activated and verified using your business details to accept real payments. You'll need an activated live account before you can proceed to the next step.
+How do I activate my live Stripe account?
+1. Navigate to your live account. You can find a list of all your accounts in your Stripe dashboard by clicking on the dropdown in the top left.
+2. Verify your business by following the instructions on the Stripe onboarding page. You'll need to provide information about your business, product, and your personal relationship to your business.
+See the official Stripe setup guide for more details.
+3
+Install Replit app on your live Stripe account
+Engagement tools
+Enable feedback widget
+Add a feedback widget to the corner of your published app. Review submissions in your inbox and send to Agent for fixes.
+
+"Made with Replit" badge
+Display a "Made with Replit" referral badge on your published app, when someone signs up using your referral link, you earn credits. Learn more.
+
+
+Publish
+Adjust settings
