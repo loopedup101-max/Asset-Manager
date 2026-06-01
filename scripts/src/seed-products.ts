@@ -19,14 +19,14 @@ const PLANS: PlanSeed[] = [
     name: "Pro",
     description:
       "For individuals shipping real work — full access to AI chat, the App Builder, Video Studio, and the Social Hub.",
-    amount: 2900,
+    amount: 4999,
     tier: "pro",
   },
   {
     name: "Business",
     description:
       "For teams that need more — everything in Pro with higher limits and priority generation.",
-    amount: 7900,
+    amount: 9999,
     tier: "business",
   },
 ];

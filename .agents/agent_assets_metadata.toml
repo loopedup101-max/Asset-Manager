@@ -35,3 +35,15 @@ id = "y1N_fzjPaZUS2t71ydfBY"
 uri = "file://exports/made-super-ai-source.zip"
 type = "unspecified"
 title = "Made Super AI — full source code"
+
+[[outputs]]
+id = "va2dEXDL7iASkwfWI-ucC"
+uri = "file://artifacts/madetvceo-chat/public/brand/stripe-icon.png"
+type = "image"
+title = "Stripe Dashboard — Icon (square)"
+
+[[outputs]]
+id = "z_XLlWrotS6h5XD8tttgZ"
+uri = "file://artifacts/madetvceo-chat/public/brand/stripe-logo.png"
+type = "image"
+title = "Stripe Dashboard — Logo (wordmark)"
