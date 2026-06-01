@@ -6,6 +6,7 @@ import {
   SignUp,
   Show,
   useClerk,
+  useAuth,
 } from "@clerk/react";
 import { publishableKeyFromHost } from "@clerk/react/internal";
 import { shadcn } from "@clerk/themes";
@@ -250,6 +251,77 @@ function ClerkQueryClientCacheInvalidator() {
   return null;
 }
 
+// Logs users out when they return in a BRAND-NEW browser session (i.e. they
+// closed the browser and came back), while keeping multiple tabs of the SAME
+// session signed in. sessionStorage is wiped when the browser closes, so a
+// missing flag means "fresh session" — but before signing out we ask any other
+// open tabs (via BroadcastChannel) whether a session is already alive.
+const SESSION_FLAG = "app_browser_session";
+
+function SessionOnlyAuthGuard() {
+  const { isLoaded, isSignedIn } = useAuth();
+  const { signOut } = useClerk();
+  const decidedRef = useRef(false);
+
+  // Persistent responder: reply "alive" to any newly-opened tab if this tab is
+  // part of an active in-browser session.
+  useEffect(() => {
+    let channel: BroadcastChannel | null = null;
+    try {
+      channel = new BroadcastChannel("app-session");
+      channel.onmessage = (e) => {
+        if (
+          e.data === "ping" &&
+          sessionStorage.getItem(SESSION_FLAG) === "1"
+        ) {
+          channel?.postMessage("alive");
+        }
+      };
+    } catch {
+      channel = null;
+    }
+    return () => channel?.close();
+  }, []);
+
+  // One-time decision once Clerk has loaded.
+  useEffect(() => {
+    if (!isLoaded || decidedRef.current) return;
+    decidedRef.current = true;
+
+    // Same tab continuing (a reload or in-app navigation) — leave them be.
+    if (sessionStorage.getItem(SESSION_FLAG) === "1") return;
+
+    let answered = false;
+    let channel: BroadcastChannel | null = null;
+    try {
+      channel = new BroadcastChannel("app-session");
+      channel.onmessage = (e) => {
+        if (e.data === "alive") {
+          answered = true;
+          sessionStorage.setItem(SESSION_FLAG, "1");
+        }
+      };
+      channel.postMessage("ping");
+    } catch {
+      channel = null;
+    }
+
+    const timer = setTimeout(() => {
+      if (!answered) {
+        // No other tab vouched for an active session → this is a fresh browser
+        // session. Mark it active and sign out any lingering login.
+        sessionStorage.setItem(SESSION_FLAG, "1");
+        if (isSignedIn) void signOut();
+      }
+      channel?.close();
+    }, 200);
+
+    return () => clearTimeout(timer);
+  }, [isLoaded, isSignedIn, signOut]);
+
+  return null;
+}
+
 function ClerkProviderWithRoutes() {
   const [, setLocation] = useLocation();
 
@@ -279,6 +351,7 @@ function ClerkProviderWithRoutes() {
     >
       <QueryClientProvider client={queryClient}>
         <ClerkQueryClientCacheInvalidator />
+        <SessionOnlyAuthGuard />
         <TooltipProvider>
           <Suspense fallback={<PageFallback />}>
           <Switch>
