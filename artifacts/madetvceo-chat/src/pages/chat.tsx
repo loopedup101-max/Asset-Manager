@@ -461,15 +461,6 @@ export function ChatPage() {
               </Link>
             ) : (
               <>
-                {isFreeTier && secondsLeft !== null && (
-                  <div className="mb-2 text-center text-xs font-medium text-cyan-300/80">
-                    ⏳ {formatTime(secondsLeft)} of free time left ·{" "}
-                    <Link href="/pricing">
-                      <span className="underline cursor-pointer hover:text-cyan-200">Get a plan</span>
-                    </Link>{" "}
-                    for unlimited access & all tools
-                  </div>
-                )}
                 <div className="relative flex items-end shadow-[0_0_30px_rgba(124,58,237,0.25)] border border-white/15 rounded-2xl bg-white/[0.04] backdrop-blur-md overflow-hidden focus-within:border-primary/50 transition-all">
                   <Textarea
                     value={content}
@@ -604,14 +595,6 @@ export function ChatPage() {
                 </span>
               </div>
             </Link>
-          </div>
-        ) : isFreeTier && secondsLeft !== null ? (
-          <div className="max-w-4xl mx-auto mb-3 text-center text-xs font-semibold text-primary">
-            ⏳ {formatTime(secondsLeft)} of free time left ·{" "}
-            <Link href="/pricing">
-              <span className="underline cursor-pointer hover:text-primary/80">Get a plan</span>
-            </Link>{" "}
-            for unlimited access
           </div>
         ) : (
           showUsageNudge && (
