@@ -6,6 +6,7 @@ import {
   creditLimitForTier,
 } from "../storage";
 import { stripeService } from "../stripeService";
+import { getUncachableStripeClient } from "../stripeClient";
 import { requireAuth } from "../middlewares/requireAuth";
 import type { User } from "@workspace/db";
 
@@ -43,34 +44,51 @@ async function computeEntitlement(user: User): Promise<Entitlement> {
   return { entitled: false, plan: null, status: null, subscription: null };
 }
 
-// Public: list plans with prices
-router.get("/stripe/products-with-prices", async (_req, res) => {
-  const rows = (await storage.listProductsWithPrices()) as Array<
-    Record<string, unknown>
-  >;
-  const map = new Map<string, Record<string, unknown>>();
-  for (const row of rows) {
-    const productId = row.product_id as string;
-    if (!map.has(productId)) {
-      map.set(productId, {
-        id: productId,
-        name: row.product_name,
-        description: row.product_description,
-        active: row.product_active,
-        metadata: row.product_metadata,
-        prices: [] as Array<Record<string, unknown>>,
-      });
-    }
-    if (row.price_id) {
-      (map.get(productId)!.prices as Array<Record<string, unknown>>).push({
-        id: row.price_id,
-        unit_amount: row.unit_amount,
-        currency: row.currency,
-        recurring: row.recurring,
-      });
-    }
+// Public: list active plans, each with its single default price.
+// Reads straight from Stripe (source of truth) and uses each product's
+// default_price, so archived/duplicate price rows in the synced DB can never
+// surface stale or wrong amounts on the pricing page.
+router.get("/stripe/products-with-prices", async (req, res) => {
+  try {
+    const stripe = await getUncachableStripeClient();
+    const products = await stripe.products.list({
+      active: true,
+      limit: 100,
+      expand: ["data.default_price"],
+    });
+
+    const data = products.data
+      .map((p) => {
+        const dp = p.default_price;
+        const price =
+          dp && typeof dp === "object" && dp.active
+            ? {
+                id: dp.id,
+                unit_amount: dp.unit_amount,
+                currency: dp.currency,
+                recurring: dp.recurring,
+              }
+            : null;
+        return {
+          id: p.id,
+          name: p.name,
+          description: p.description,
+          active: p.active,
+          metadata: p.metadata,
+          prices: price ? [price] : [],
+        };
+      })
+      .filter((p) => p.prices.length > 0)
+      .sort(
+        (a, b) =>
+          (a.prices[0]!.unit_amount ?? 0) - (b.prices[0]!.unit_amount ?? 0),
+      );
+
+    res.json({ data });
+  } catch (err) {
+    req.log.error({ err }, "Failed to list products with prices");
+    res.status(503).json({ error: "Could not load plans", data: [] });
   }
-  res.json({ data: Array.from(map.values()) });
 });
 
 // Current user + entitlement
