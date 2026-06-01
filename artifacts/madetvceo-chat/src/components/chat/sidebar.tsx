@@ -1,5 +1,5 @@
 import { formatDistanceToNow } from "date-fns";
-import { Plus, MessageSquare, Settings, Trash2, Menu, Zap, Share2, Wrench } from "lucide-react";
+import { Plus, MessageSquare, Settings, Trash2, Menu, Zap, Share2, Wrench, Clapperboard } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useListConversations, useCreateConversation, useDeleteConversation, getListConversationsQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -82,6 +82,12 @@ export function Sidebar({ className, isMobile = false }: { className?: string, i
           <div className={cn("flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-300 border border-transparent", location.startsWith("/social") ? "bg-gradient-to-r from-primary/30 to-blue-600/10 text-white border-primary/30 shadow-[0_0_15px_rgba(91,33,182,0.2)]" : "hover:bg-white/5 text-white/70 border-white/5")}>
             <Share2 className={cn("w-5 h-5 shrink-0", location.startsWith("/social") ? "text-cyan-400" : "text-white/40")} />
             <span className={cn("font-medium text-sm", location.startsWith("/social") && "text-white font-semibold")}>Social Hub</span>
+          </div>
+        </Link>
+        <Link href="/studio">
+          <div className={cn("flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-300 border border-transparent", location.startsWith("/studio") ? "bg-gradient-to-r from-primary/30 to-blue-600/10 text-white border-primary/30 shadow-[0_0_15px_rgba(91,33,182,0.2)]" : "hover:bg-white/5 text-white/70 border-white/5")}>
+            <Clapperboard className={cn("w-5 h-5 shrink-0", location.startsWith("/studio") ? "text-cyan-400" : "text-white/40")} />
+            <span className={cn("font-medium text-sm", location.startsWith("/studio") && "text-white font-semibold")}>Video Studio</span>
           </div>
         </Link>
         <Link href="/tools">

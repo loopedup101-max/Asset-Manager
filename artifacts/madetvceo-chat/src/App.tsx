@@ -4,10 +4,12 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Sidebar } from "@/components/chat/sidebar";
 import { Ticker } from "@/components/Ticker";
+import { Mascot } from "@/components/Mascot";
 import { ChatPage } from "@/pages/chat";
 import { SettingsPage } from "@/pages/settings";
 import { SocialPage } from "@/pages/social";
 import { ToolsPage } from "@/pages/tools";
+import { StudioPage } from "@/pages/studio";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient();
@@ -20,6 +22,7 @@ function Layout({ children }: { children: React.ReactNode }) {
         <Ticker />
         {children}
       </main>
+      <Mascot />
     </div>
   );
 }
@@ -33,6 +36,7 @@ function Router() {
         <Route path="/settings" component={SettingsPage} />
         <Route path="/social" component={SocialPage} />
         <Route path="/tools" component={ToolsPage} />
+        <Route path="/studio" component={StudioPage} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

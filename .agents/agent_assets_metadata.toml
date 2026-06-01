@@ -1,0 +1,8 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "tKNqRNsiNQPjH4HyRvAc9"
+uri = "file://artifacts/madetvceo-chat/src/assets/mascot.png"
+type = "image"
+title = "robot mascot"

@@ -1,0 +1,1 @@
+- [Video generation architecture](video-generation-architecture.md) — video is assembled client-side (canvas+MediaRecorder); proxy has no server-side video gen.
