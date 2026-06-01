@@ -201,10 +201,7 @@ export function SocialPage() {
 function ConnectPlatformSheet({ platform }: { platform: typeof PLATFORMS[0] }) {
   const [open, setOpen] = useState(false);
   const [username, setUsername] = useState("");
-  const [apiKey, setApiKey] = useState("");
-  const [apiSecret, setApiSecret] = useState("");
-  const [accessToken, setAccessToken] = useState("");
-  
+
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const { requirePlan } = usePaidAction();
@@ -216,10 +213,7 @@ function ConnectPlatformSheet({ platform }: { platform: typeof PLATFORMS[0] }) {
     connectMutation.mutate({
       data: {
         platform: platform.id as SocialAccountInputPlatform,
-        username,
-        apiKey,
-        apiSecret,
-        accessToken
+        username
       }
     }, {
       onSuccess: () => {
@@ -229,7 +223,7 @@ function ConnectPlatformSheet({ platform }: { platform: typeof PLATFORMS[0] }) {
         queryClient.invalidateQueries({ queryKey: getGetSocialStatsQueryKey() });
       },
       onError: () => {
-        toast({ title: "Connection Failed", description: "Could not connect account. Please check your credentials.", variant: "destructive" });
+        toast({ title: "Connection Failed", description: "Could not connect account. Please try again.", variant: "destructive" });
       }
     });
   };
@@ -248,31 +242,19 @@ function ConnectPlatformSheet({ platform }: { platform: typeof PLATFORMS[0] }) {
             <SheetTitle>Connect {platform.name}</SheetTitle>
           </div>
           <SheetDescription>
-            Enter your API credentials to allow Made Super AI to post on your behalf.
+            Enter your {platform.name} handle to connect your account.
           </SheetDescription>
         </SheetHeader>
         <form onSubmit={handleConnect} className="space-y-6">
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="username">Username / Handle</Label>
-              <Input id="username" value={username} onChange={e => setUsername(e.target.value)} required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="apiKey">API Key / Client ID</Label>
-              <Input id="apiKey" type="password" value={apiKey} onChange={e => setApiKey(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="apiSecret">API Secret / Client Secret</Label>
-              <Input id="apiSecret" type="password" value={apiSecret} onChange={e => setApiSecret(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="accessToken">Access Token</Label>
-              <Input id="accessToken" type="password" value={accessToken} onChange={e => setAccessToken(e.target.value)} />
+              <Input id="username" value={username} onChange={e => setUsername(e.target.value)} placeholder={`@your${platform.name.toLowerCase().replace(/\s+/g, "")}handle`} required />
             </div>
           </div>
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex gap-3 text-amber-800 text-sm">
+          <div className="bg-muted/50 border rounded-lg p-4 flex gap-3 text-muted-foreground text-sm">
             <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-            <p>Your credentials are encrypted and stored securely. We will never post without your explicit schedule or confirmation.</p>
+            <p>We will never post without your explicit schedule or confirmation.</p>
           </div>
           <Button type="submit" className="w-full" disabled={connectMutation.isPending || !username}>
             {connectMutation.isPending ? "Connecting..." : "Save Connection"}

@@ -3,6 +3,7 @@ import { eq, asc, and } from "drizzle-orm";
 import { db, conversationsTable, messagesTable } from "@workspace/db";
 import { openai } from "@workspace/integrations-openai-ai-server";
 import { SendMessageParams, SendMessageBody } from "@workspace/api-zod";
+import { storage, getUserTier, creditLimitForTier } from "../storage";
 
 const router: IRouter = Router();
 
@@ -115,6 +116,27 @@ router.post("/conversations/:id/messages/stream", async (req, res): Promise<void
     return;
   }
 
+  // Meter the free "Ask Me Anything" chat. Free and Basic tiers have a monthly
+  // allowance; Pro/Business/owner are unlimited. We only CHECK here — the credit
+  // is consumed later, after a real answer is produced. That way a failed,
+  // aborted, or empty request never costs the user a credit.
+  const tier = await getUserTier(req.appUser!);
+  const creditLimit = creditLimitForTier(tier);
+  if (creditLimit !== null) {
+    const used = await storage.getUsageCount(req.appUser!.id);
+    if (used >= creditLimit) {
+      res.status(402).json({
+        error:
+          tier === "free"
+            ? `You've used all ${creditLimit} free messages this month. Get a plan to keep chatting and unlock every tool.`
+            : `You've used all ${creditLimit} of your monthly Basic credits. Upgrade to Pro for unlimited AI.`,
+        code: "usage_limit_reached",
+        usage: { used: creditLimit, limit: creditLimit, remaining: 0 },
+      });
+      return;
+    }
+  }
+
   const history = await db
     .select()
     .from(messagesTable)
@@ -162,6 +184,11 @@ router.post("/conversations/:id/messages/stream", async (req, res): Promise<void
     res.write(`data: ${JSON.stringify({ type: "error", message: "AI hiccuped. Try again?" })}\n\n`);
     res.end();
     return;
+  }
+
+  // Only now — after a real, non-empty answer — does the chat cost a credit.
+  if (creditLimit !== null && fullResponse.trim().length > 0) {
+    await storage.consumeBasicCredit(req.appUser!.id, creditLimit);
   }
 
   const [assistantMessage] = await db

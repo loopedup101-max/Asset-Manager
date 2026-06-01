@@ -9,7 +9,6 @@ import builderRouter from "./builder";
 import stripeRouter from "./stripe";
 import { requireAuth } from "../middlewares/requireAuth";
 import { requireEntitlement } from "../middlewares/requireEntitlement";
-import { consumeUsageCredit } from "../middlewares/consumeUsageCredit";
 
 const router: IRouter = Router();
 
@@ -22,10 +21,10 @@ router.use(stripeRouter);
 // Everything below requires sign-in. The owner always bypasses metering/paywall.
 router.use(requireAuth);
 
-// FREE: the "Ask Me Anything" chat is usable on the free tier. It is metered —
-// free users get a small monthly allowance, Basic users get their credits, and
-// Pro/Business/owner are unlimited.
-router.use(consumeUsageCredit, aiChatRouter);
+// FREE: the "Ask Me Anything" chat is usable on the free tier. It is metered
+// INSIDE the handler — a credit is only spent once a real answer is produced, so
+// failed/aborted requests never cost the user. Pro/Business/owner are unlimited.
+router.use(aiChatRouter);
 // Conversation + message CRUD backs the free chat, so any signed-in user can use
 // it. Never metered (only the AI generation in ai-chat consumes allowance).
 router.use(conversationsRouter);
