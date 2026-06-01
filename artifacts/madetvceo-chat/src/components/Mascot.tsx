@@ -1,4 +1,4 @@
-import mascotImg from "@/assets/mascot.png";
+import mascotImg from "@/assets/mascot.webp";
 
 export function Mascot() {
   return (

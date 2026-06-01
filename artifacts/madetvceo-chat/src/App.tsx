@@ -1,4 +1,5 @@
-import { useEffect, useRef } from "react";
+import { lazy, Suspense, useEffect, useRef } from "react";
+import { Loader2 } from "lucide-react";
 import {
   ClerkProvider,
   SignIn,
@@ -28,17 +29,28 @@ import { Mascot } from "@/components/Mascot";
 import { PreviewBanner } from "@/components/PreviewBanner";
 import { useMe } from "@/hooks/useMe";
 import { ChatPage } from "@/pages/chat";
-import { SettingsPage } from "@/pages/settings";
-import { SocialPage } from "@/pages/social";
-import { ToolsPage } from "@/pages/tools";
-import { StudioPage } from "@/pages/studio";
-import { BuilderPage } from "@/pages/builder";
-import { TermsPage } from "@/pages/terms";
-import { PrivacyPage } from "@/pages/privacy";
 import { LandingPage } from "@/pages/landing";
-import { PricingPage } from "@/pages/pricing";
-import { AccountPage } from "@/pages/account";
 import NotFound from "@/pages/not-found";
+
+// Heavy tool pages and secondary screens are split into their own chunks so the
+// first load only downloads what's needed. They stream in on navigation.
+const SettingsPage = lazy(() => import("@/pages/settings").then((m) => ({ default: m.SettingsPage })));
+const SocialPage = lazy(() => import("@/pages/social").then((m) => ({ default: m.SocialPage })));
+const ToolsPage = lazy(() => import("@/pages/tools").then((m) => ({ default: m.ToolsPage })));
+const StudioPage = lazy(() => import("@/pages/studio").then((m) => ({ default: m.StudioPage })));
+const BuilderPage = lazy(() => import("@/pages/builder").then((m) => ({ default: m.BuilderPage })));
+const TermsPage = lazy(() => import("@/pages/terms").then((m) => ({ default: m.TermsPage })));
+const PrivacyPage = lazy(() => import("@/pages/privacy").then((m) => ({ default: m.PrivacyPage })));
+const PricingPage = lazy(() => import("@/pages/pricing").then((m) => ({ default: m.PricingPage })));
+const AccountPage = lazy(() => import("@/pages/account").then((m) => ({ default: m.AccountPage })));
+
+function PageFallback() {
+  return (
+    <div className="flex items-center justify-center h-screen w-full bg-[#070711]">
+      <Loader2 className="w-8 h-8 animate-spin text-primary" />
+    </div>
+  );
+}
 
 // REQUIRED — copy verbatim.
 const clerkPubKey = publishableKeyFromHost(
@@ -268,6 +280,7 @@ function ClerkProviderWithRoutes() {
       <QueryClientProvider client={queryClient}>
         <ClerkQueryClientCacheInvalidator />
         <TooltipProvider>
+          <Suspense fallback={<PageFallback />}>
           <Switch>
             <Route path="/" component={HomeRoute} />
             <Route path="/sign-in/*?" component={SignInPage} />
@@ -324,6 +337,7 @@ function ClerkProviderWithRoutes() {
             <Route path="/privacy" component={PrivacyPage} />
             <Route component={NotFound} />
           </Switch>
+          </Suspense>
         </TooltipProvider>
         <Toaster />
       </QueryClientProvider>

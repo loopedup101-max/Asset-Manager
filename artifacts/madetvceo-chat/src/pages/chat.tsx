@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import mascotImg from "@/assets/mascot.png";
+import mascotImg from "@/assets/mascot.webp";
 import { useMe } from "@/hooks/useMe";
 
 interface ChatMessage {

@@ -12,11 +12,11 @@ import {
   MessageSquare,
   Zap,
 } from "lucide-react";
-import mascotImg from "@/assets/mascot.png";
-import chatImg from "@/assets/features/chat.png";
-import builderImg from "@/assets/features/builder.png";
-import studioImg from "@/assets/features/studio.png";
-import socialImg from "@/assets/features/social.png";
+import mascotImg from "@/assets/mascot.webp";
+import chatImg from "@/assets/features/chat.webp";
+import builderImg from "@/assets/features/builder.webp";
+import studioImg from "@/assets/features/studio.webp";
+import socialImg from "@/assets/features/social.webp";
 import { PricingPlans } from "@/components/PricingPlans";
 
 const CAPABILITIES = [
