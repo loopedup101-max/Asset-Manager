@@ -1,1 +1,2 @@
 - [Video generation architecture](video-generation-architecture.md) — video is assembled client-side (canvas+MediaRecorder); proxy has no server-side video gen.
+- [App Builder](app-builder.md) — in-app AI builds single-file HTML apps; build endpoint streams SSE because a full build runs ~2-3 min and times out otherwise.

@@ -10,6 +10,8 @@ import { SettingsPage } from "@/pages/settings";
 import { SocialPage } from "@/pages/social";
 import { ToolsPage } from "@/pages/tools";
 import { StudioPage } from "@/pages/studio";
+import { BuilderPage } from "@/pages/builder";
+import { TermsPage } from "@/pages/terms";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient();
@@ -37,6 +39,8 @@ function Router() {
         <Route path="/social" component={SocialPage} />
         <Route path="/tools" component={ToolsPage} />
         <Route path="/studio" component={StudioPage} />
+        <Route path="/builder" component={BuilderPage} />
+        <Route path="/terms" component={TermsPage} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

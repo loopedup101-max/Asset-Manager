@@ -1,4 +1,5 @@
 const CAPABILITIES = [
+  { icon: "🧱", text: "App Builder — Build Working Apps Instantly" },
   { icon: "⚡", text: "Build REST APIs" },
   { icon: "🎬", text: "Create & Post Videos" },
   { icon: "🏗️", text: "Design Databases" },

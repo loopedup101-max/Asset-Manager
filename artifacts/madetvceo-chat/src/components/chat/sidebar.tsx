@@ -1,5 +1,5 @@
 import { formatDistanceToNow } from "date-fns";
-import { Plus, MessageSquare, Settings, Trash2, Menu, Zap, Share2, Wrench, Clapperboard } from "lucide-react";
+import { Plus, MessageSquare, Settings, Trash2, Menu, Zap, Share2, Wrench, Clapperboard, Blocks } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useListConversations, useCreateConversation, useDeleteConversation, getListConversationsQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -84,6 +84,12 @@ export function Sidebar({ className, isMobile = false }: { className?: string, i
             <span className={cn("font-medium text-sm", location.startsWith("/social") && "text-white font-semibold")}>Social Hub</span>
           </div>
         </Link>
+        <Link href="/builder">
+          <div className={cn("flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-300 border border-transparent", location.startsWith("/builder") ? "bg-gradient-to-r from-primary/30 to-blue-600/10 text-white border-primary/30 shadow-[0_0_15px_rgba(91,33,182,0.2)]" : "hover:bg-white/5 text-white/70 border-white/5")}>
+            <Blocks className={cn("w-5 h-5 shrink-0", location.startsWith("/builder") ? "text-cyan-400" : "text-white/40")} />
+            <span className={cn("font-medium text-sm", location.startsWith("/builder") && "text-white font-semibold")}>App Builder</span>
+          </div>
+        </Link>
         <Link href="/studio">
           <div className={cn("flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-300 border border-transparent", location.startsWith("/studio") ? "bg-gradient-to-r from-primary/30 to-blue-600/10 text-white border-primary/30 shadow-[0_0_15px_rgba(91,33,182,0.2)]" : "hover:bg-white/5 text-white/70 border-white/5")}>
             <Clapperboard className={cn("w-5 h-5 shrink-0", location.startsWith("/studio") ? "text-cyan-400" : "text-white/40")} />
@@ -147,10 +153,20 @@ export function Sidebar({ className, isMobile = false }: { className?: string, i
         )}
       </div>
 
-      <div className="p-4 mt-auto">
+      <div className="p-4 mt-auto space-y-2">
         <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-black/20 border border-white/5">
           <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.8)]" />
           <span className="text-xs font-semibold tracking-wide uppercase text-white/60">Powered by AI</span>
+        </div>
+        <div className="px-1 text-center">
+          <Link href="/terms">
+            <span className="text-[11px] text-white/40 hover:text-white/70 transition-colors cursor-pointer">
+              Terms &amp; Conditions
+            </span>
+          </Link>
+          <p className="text-[10px] text-white/30 mt-0.5">
+            © {new Date().getFullYear()} MadeTVProducts. All rights reserved.
+          </p>
         </div>
       </div>
     </div>
