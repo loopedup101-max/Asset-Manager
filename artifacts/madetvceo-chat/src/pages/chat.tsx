@@ -227,8 +227,6 @@ export function ChatPage() {
   }, [isFreeTier, trialStartedAt, trialTotal]);
 
   const trialExpired = isFreeTier && secondsLeft !== null && secondsLeft <= 0;
-  const formatTime = (s: number) =>
-    `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 
   // When the free trial is used up, the server hands back when the next free
   // window unlocks. Refetch /me at that moment so the chat re-enables itself
