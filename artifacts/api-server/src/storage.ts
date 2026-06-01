@@ -1,10 +1,19 @@
-import { db, usersTable, type User } from "@workspace/db";
-import { eq, sql } from "drizzle-orm";
+import { db, usersTable, usageTable, type User } from "@workspace/db";
+import { and, eq, sql } from "drizzle-orm";
 
 const OWNER_EMAILS = (process.env.OWNER_EMAILS || "")
   .split(",")
   .map((s) => s.trim().toLowerCase())
   .filter(Boolean);
+
+/** Monthly AI-action allowance for the Basic plan. Higher tiers are unlimited. */
+export const BASIC_MONTHLY_LIMIT = 100;
+
+/** Current usage period as "YYYY-MM" (UTC). Usage resets each calendar month. */
+function currentPeriod(): string {
+  const now = new Date();
+  return `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}`;
+}
 
 export function isOwnerEmail(email: string | null | undefined): boolean {
   if (!email) return false;
@@ -84,6 +93,53 @@ export class Storage {
     }
   }
 
+  /** The plan tier (from product metadata) for a subscription's first item. */
+  async getSubscriptionTier(subscriptionId: string): Promise<string | null> {
+    try {
+      const result = await db.execute(
+        sql`
+          SELECT prod.metadata->>'tier' AS tier
+          FROM stripe.subscription_items si
+          JOIN stripe.prices pr ON pr.id = si.price
+          JOIN stripe.products prod ON prod.id = pr.product
+          WHERE si.subscription = ${subscriptionId}
+          LIMIT 1
+        `,
+      );
+      const row = result.rows[0] as { tier?: string | null } | undefined;
+      return row?.tier ?? null;
+    } catch {
+      return null;
+    }
+  }
+
+  // ---- Usage metering (Basic plan monthly allowance) ----
+  async getUsageCount(userId: string): Promise<number> {
+    const [row] = await db
+      .select()
+      .from(usageTable)
+      .where(
+        and(
+          eq(usageTable.userId, userId),
+          eq(usageTable.period, currentPeriod()),
+        ),
+      );
+    return row?.count ?? 0;
+  }
+
+  /** Atomically record one AI action for the current period; returns new count. */
+  async incrementUsage(userId: string): Promise<number> {
+    const [row] = await db
+      .insert(usageTable)
+      .values({ userId, period: currentPeriod(), count: 1 })
+      .onConflictDoUpdate({
+        target: [usageTable.userId, usageTable.period],
+        set: { count: sql`${usageTable.count} + 1`, updatedAt: new Date() },
+      })
+      .returning();
+    return row.count;
+  }
+
   // ---- App users ----
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db
@@ -155,4 +211,26 @@ export async function userIsEntitled(user: User): Promise<boolean> {
     return sub?.status === "active" || sub?.status === "trialing";
   }
   return false;
+}
+
+export type PlanTier = "owner" | "business" | "pro" | "basic";
+
+/**
+ * The user's effective plan tier, or null if not entitled. Owner is always
+ * "owner"; active subscribers map to their Stripe product's metadata.tier
+ * (defaulting to "pro" if the tier metadata is missing/unknown).
+ */
+export async function getUserTier(user: User): Promise<PlanTier | null> {
+  if (user.role === "owner" || isOwnerEmail(user.email)) return "owner";
+  if (user.stripeSubscriptionId) {
+    const sub = (await storage.getSubscription(user.stripeSubscriptionId)) as
+      | { status?: string }
+      | null;
+    const active = sub?.status === "active" || sub?.status === "trialing";
+    if (!active) return null;
+    const tier = await storage.getSubscriptionTier(user.stripeSubscriptionId);
+    if (tier === "basic" || tier === "pro" || tier === "business") return tier;
+    return "pro";
+  }
+  return null;
 }

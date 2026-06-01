@@ -52,7 +52,7 @@ export function PricingPage() {
           </p>
         </div>
 
-        <PricingPlans currentPlan={me?.plan} />
+        <PricingPlans currentTier={me?.tier} />
 
         <p className="text-center text-xs text-slate-500 mt-10">
           Secure checkout powered by Stripe. Cancel anytime.

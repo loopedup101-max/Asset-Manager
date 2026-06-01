@@ -1,12 +1,23 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@clerk/react";
 
+export type PlanTier = "owner" | "business" | "pro" | "basic";
+
+export type Usage = {
+  used: number;
+  limit: number | null;
+  remaining: number | null;
+  unlimited: boolean;
+};
+
 export type Me = {
   user: { id: string; email: string | null; role: string };
   entitled: boolean;
   plan: "owner" | "paid" | null;
+  tier: PlanTier | null;
   status: string | null;
   subscription: unknown;
+  usage: Usage;
 };
 
 export function useMe() {

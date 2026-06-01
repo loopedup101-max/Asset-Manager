@@ -28,6 +28,9 @@ export function Sidebar({ className, isMobile = false }: { className?: string, i
   const entitled = me?.entitled ?? false;
   const isOwner = me?.plan === "owner";
   const email = me?.user.email ?? "";
+  const tier = me?.tier ?? null;
+  const usage = me?.usage;
+  const showUsage = tier === "basic" && usage && !usage.unlimited;
 
   const activeId = location.startsWith("/c/") ? parseInt(location.split("/")[2]) : null;
 
@@ -168,6 +171,37 @@ export function Sidebar({ className, isMobile = false }: { className?: string, i
           </Link>
         )}
 
+        {showUsage && usage && (
+          <div className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5">
+            <div className="flex items-center justify-between text-[11px] mb-1.5">
+              <span className="text-white/50 font-semibold uppercase tracking-wide">
+                AI usage
+              </span>
+              <span className="text-white/80 font-semibold">
+                {usage.used}/{usage.limit}
+              </span>
+            </div>
+            <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
+              <div
+                className={cn(
+                  "h-full rounded-full transition-all",
+                  usage.remaining === 0
+                    ? "bg-gradient-to-r from-red-500 to-orange-400"
+                    : "bg-gradient-to-r from-cyan-400 to-primary",
+                )}
+                style={{
+                  width: `${Math.min(100, (usage.used / (usage.limit || 1)) * 100)}%`,
+                }}
+              />
+            </div>
+            <Link href="/pricing">
+              <div className="mt-2 flex items-center justify-center gap-1.5 text-xs font-semibold text-cyan-300 hover:text-cyan-200 cursor-pointer transition-colors">
+                <Sparkles className="w-3.5 h-3.5" /> Upgrade for unlimited
+              </div>
+            </Link>
+          </div>
+        )}
+
         <div className="flex items-center gap-3 px-2 py-2">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary/40 to-cyan-400/20 border border-white/10 flex items-center justify-center text-sm font-display font-bold text-white shrink-0">
             {(email || "?").charAt(0).toUpperCase()}
@@ -179,8 +213,8 @@ export function Sidebar({ className, isMobile = false }: { className?: string, i
                 <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-amber-300">
                   <Crown className="w-3 h-3" /> Owner
                 </span>
-              ) : entitled ? (
-                <span className="text-[10px] font-bold uppercase tracking-wide text-cyan-300">Pro</span>
+              ) : tier ? (
+                <span className="text-[10px] font-bold uppercase tracking-wide text-cyan-300 capitalize">{tier}</span>
               ) : (
                 <span className="text-[10px] font-bold uppercase tracking-wide text-white/40">Free</span>
               )}

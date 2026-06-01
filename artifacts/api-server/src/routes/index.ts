@@ -9,6 +9,7 @@ import builderRouter from "./builder";
 import stripeRouter from "./stripe";
 import { requireAuth } from "../middlewares/requireAuth";
 import { requireEntitlement } from "../middlewares/requireEntitlement";
+import { consumeUsageCredit } from "../middlewares/consumeUsageCredit";
 
 const router: IRouter = Router();
 
@@ -20,11 +21,16 @@ router.use(stripeRouter);
 // --- Gated routes: signed in AND entitled (owner is always free) ---
 // The whole product (chat + tools) requires a subscription; the owner bypasses.
 router.use(requireAuth, requireEntitlement);
-router.use(aiChatRouter);
+
+// AI generation endpoints consume one usage credit per call (metered for the
+// Basic plan; unlimited for Pro/Business/owner).
+router.use(consumeUsageCredit, aiChatRouter);
+router.use(consumeUsageCredit, videoRouter);
+router.use(consumeUsageCredit, builderRouter);
+
+// Non-AI CRUD endpoints: gated but never metered.
 router.use(conversationsRouter);
 router.use(statsRouter);
 router.use(socialRouter);
-router.use(videoRouter);
-router.use(builderRouter);
 
 export default router;

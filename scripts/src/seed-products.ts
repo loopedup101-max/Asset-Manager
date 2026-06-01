@@ -9,6 +9,13 @@ interface PlanSeed {
 
 const PLANS: PlanSeed[] = [
   {
+    name: "Basic",
+    description:
+      "For getting started — full app access with a monthly allowance of 100 AI actions. Upgrade anytime for unlimited.",
+    amount: 1999,
+    tier: "basic",
+  },
+  {
     name: "Pro",
     description:
       "For individuals shipping real work — full access to AI chat, the App Builder, Video Studio, and the Social Hub.",

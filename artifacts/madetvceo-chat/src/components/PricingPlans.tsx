@@ -2,8 +2,9 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@clerk/react";
 import { useLocation } from "wouter";
-import { Check, Zap, Rocket, Loader2, Sparkles } from "lucide-react";
+import { Check, Zap, Rocket, Loader2, Sparkles, Gauge } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { PlanTier } from "@/hooks/useMe";
 
 type Price = {
   id: string;
@@ -20,7 +21,7 @@ type Product = {
   prices: Price[];
 };
 
-type TierKey = "pro" | "business";
+type TierKey = "basic" | "pro" | "business";
 
 const PLAN_COPY: Record<
   TierKey,
@@ -31,22 +32,31 @@ const PLAN_COPY: Record<
     features: string[];
   }
 > = {
+  basic: {
+    tagline: "For getting started",
+    icon: Gauge,
+    features: [
+      "Full app access",
+      "100 AI actions / month",
+      "App Builder, Video Studio & Social Hub",
+      "System Tools",
+      "Upgrade anytime",
+    ],
+  },
   pro: {
     tagline: "For creators shipping fast",
     icon: Zap,
+    highlight: true,
     features: [
-      "Unlimited AI agent chat",
-      "App Builder access",
-      "Video Studio",
-      "Social Hub",
-      "System Tools",
+      "Everything in Basic",
+      "Unlimited AI actions",
+      "Priority generation",
       "Standard support",
     ],
   },
   business: {
     tagline: "For teams that scale",
     icon: Rocket,
-    highlight: true,
     features: [
       "Everything in Pro",
       "Priority AI processing",
@@ -59,19 +69,25 @@ const PLAN_COPY: Record<
 };
 
 function tierKey(name: string): TierKey {
-  return /business/i.test(name) ? "business" : "pro";
+  if (/business/i.test(name)) return "business";
+  if (/basic/i.test(name)) return "basic";
+  return "pro";
 }
 
 function formatPrice(amount: number | null, currency: string): string {
   if (amount == null) return "—";
   const symbol = currency?.toLowerCase() === "usd" ? "$" : "";
-  return `${symbol}${(amount / 100).toFixed(0)}`;
+  const dollars = amount / 100;
+  const value = Number.isInteger(dollars)
+    ? dollars.toFixed(0)
+    : dollars.toFixed(2);
+  return `${symbol}${value}`;
 }
 
 export function PricingPlans({
-  currentPlan,
+  currentTier,
 }: {
-  currentPlan?: "owner" | "paid" | null;
+  currentTier?: PlanTier | null;
 }) {
   const { isSignedIn } = useAuth();
   const [, setLocation] = useLocation();
@@ -90,25 +106,46 @@ export function PricingPlans({
     },
   });
 
-  async function handleSelect(priceId: string) {
+  const hasSub =
+    currentTier === "basic" ||
+    currentTier === "pro" ||
+    currentTier === "business";
+
+  async function handleSelect(priceId: string, isCurrent: boolean) {
     setError(null);
+    if (isCurrent) return;
     if (!isSignedIn) {
       setLocation("/sign-up");
       return;
     }
     setLoadingId(priceId);
     try {
-      const res = await fetch("/api/stripe/checkout", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ priceId }),
-      });
-      const out = (await res.json()) as { url?: string; error?: string };
-      if (res.ok && out.url) {
-        window.location.href = out.url;
-        return;
+      // Existing subscribers change plans in the Stripe billing portal so we
+      // never create a second subscription. New users go through checkout.
+      if (hasSub) {
+        const res = await fetch("/api/stripe/portal", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+        });
+        const out = (await res.json()) as { url?: string; error?: string };
+        if (res.ok && out.url) {
+          window.location.href = out.url;
+          return;
+        }
+        setError(out.error ?? "Could not open billing portal. Please try again.");
+      } else {
+        const res = await fetch("/api/stripe/checkout", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ priceId }),
+        });
+        const out = (await res.json()) as { url?: string; error?: string };
+        if (res.ok && out.url) {
+          window.location.href = out.url;
+          return;
+        }
+        setError(out.error ?? "Could not start checkout. Please try again.");
       }
-      setError(out.error ?? "Could not start checkout. Please try again.");
     } catch {
       setError("Network error. Please try again.");
     }
@@ -121,6 +158,10 @@ export function PricingPlans({
       (a, b) =>
         (a.prices[0]?.unit_amount ?? 0) - (b.prices[0]?.unit_amount ?? 0),
     );
+
+  const currentAmount =
+    products.find((p) => tierKey(p.name) === currentTier)?.prices[0]
+      ?.unit_amount ?? null;
 
   if (isLoading) {
     return (
@@ -150,13 +191,29 @@ export function PricingPlans({
           {error}
         </div>
       )}
-      <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+      <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
         {products.map((product) => {
           const key = tierKey(product.name);
           const copy = PLAN_COPY[key];
           const price = product.prices[0];
           const Icon = copy.icon;
           const isLoadingThis = loadingId === price.id;
+          const isCurrent = currentTier === key;
+          const isOwner = currentTier === "owner";
+          const amount = price.unit_amount ?? 0;
+
+          let label: string;
+          if (isOwner) label = "Included";
+          else if (isCurrent) label = "Current plan";
+          else if (hasSub)
+            label =
+              currentAmount != null && amount > currentAmount
+                ? "Upgrade"
+                : "Switch plan";
+          else label = isSignedIn ? "Subscribe" : "Get started";
+
+          const disabled = isLoadingThis || isCurrent || isOwner;
+
           return (
             <div
               key={product.id}
@@ -207,8 +264,8 @@ export function PricingPlans({
 
               <button
                 type="button"
-                disabled={isLoadingThis || currentPlan === "paid"}
-                onClick={() => handleSelect(price.id)}
+                disabled={disabled}
+                onClick={() => handleSelect(price.id, isCurrent)}
                 className={cn(
                   "w-full h-12 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all disabled:opacity-60",
                   copy.highlight
@@ -220,12 +277,8 @@ export function PricingPlans({
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" /> Redirecting…
                   </>
-                ) : currentPlan === "paid" ? (
-                  "Current plan"
-                ) : isSignedIn ? (
-                  "Subscribe"
                 ) : (
-                  "Get started"
+                  label
                 )}
               </button>
             </div>
