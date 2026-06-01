@@ -204,7 +204,7 @@ function ConnectPlatformSheet({ platform }: { platform: typeof PLATFORMS[0] }) {
 
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const { requirePlan } = usePaidAction();
+  const { entitled, requirePlan } = usePaidAction();
   const connectMutation = useConnectSocialAccount();
 
   const handleConnect = (e: React.FormEvent) => {
@@ -229,7 +229,16 @@ function ConnectPlatformSheet({ platform }: { platform: typeof PLATFORMS[0] }) {
   };
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
+    <Sheet
+      open={open}
+      onOpenChange={(o) => {
+        if (o && !entitled) {
+          requirePlan();
+          return;
+        }
+        setOpen(o);
+      }}
+    >
       <SheetTrigger asChild>
         <Button className="w-full bg-primary hover:bg-primary/90">Connect {platform.name}</Button>
       </SheetTrigger>
