@@ -54,13 +54,18 @@ if (Number.isNaN(port) || port <= 0) {
   throw new Error(`Invalid PORT value: "${rawPort}"`);
 }
 
-void initStripe().finally(() => {
-  app.listen(port, (err) => {
-    if (err) {
-      logger.error({ err }, "Error listening on port");
-      process.exit(1);
-    }
+// Start listening IMMEDIATELY so the deployment health check (/api/healthz)
+// passes right away. Stripe setup (DB migration, credential fetch, webhook
+// creation) makes live external calls that can be slow or unavailable at deploy
+// time; gating startup on them would fail the health check and block publishing.
+app.listen(port, (err) => {
+  if (err) {
+    logger.error({ err }, "Error listening on port");
+    process.exit(1);
+  }
 
-    logger.info({ port }, "Server listening");
-  });
+  logger.info({ port }, "Server listening");
+
+  // Initialize Stripe in the background; never blocks startup or health checks.
+  void initStripe();
 });

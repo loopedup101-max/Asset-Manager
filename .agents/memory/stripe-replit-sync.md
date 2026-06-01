@@ -20,3 +20,10 @@ Two separate bugs that both produce an empty pricing page (products never reach 
 **Fix:** call `stripeSync.syncBackfill({ object: "all" })`.
 
 **Why both matter:** each independently leaves `stripe.products`/`stripe.prices` empty, so `/api/stripe/products-with-prices` returns `{"data":[]}` and the pricing page shows no plans. Verify the fix by querying `stripe.products` directly, not just by HTTP 200.
+
+## 3. Never gate app.listen() on Stripe init — it blocks publishing
+On autoscale deploy, the health check (`/api/healthz`) must answer fast or the publish is rejected. `initStripe()` makes live external calls (DB migration, managed-connector credential fetch, `findOrCreateManagedWebhook` → Stripe API) that can be slow or unavailable at deploy time.
+
+**Bug:** `void initStripe().finally(() => app.listen(...))` — server only starts listening AFTER Stripe init resolves. If init hangs/slow in prod, the server never listens, health check times out, deploy fails. User-visible symptom: "it won't publish because of Stripe."
+
+**Fix:** call `app.listen()` immediately; kick off `void initStripe()` from inside the listen callback (background, non-blocking). Health check then passes regardless of Stripe state.
