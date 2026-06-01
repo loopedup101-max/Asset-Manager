@@ -5,7 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Sidebar } from "@/components/chat/sidebar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { SendHorizontal, Bot, User, Loader2, Zap, Clock, Lightbulb } from "lucide-react";
+import { SendHorizontal, Bot, User, Loader2, Sparkles, Code2, Video, Share2, Database, Cpu, Wand2, ShieldCheck, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
@@ -21,52 +21,108 @@ interface ChatMessage {
   streaming?: boolean;
 }
 
+const AGENT_CAPABILITIES = [
+  { icon: Code2, label: "Build Working Apps", desc: "Full-stack, deployed" },
+  { icon: Video, label: "Create & Post Videos", desc: "Script to upload" },
+  { icon: Share2, label: "Run Your Socials", desc: "Auto-post everywhere" },
+  { icon: Database, label: "Design Databases", desc: "Schemas & queries" },
+  { icon: Cpu, label: "Write REST APIs", desc: "Production-ready" },
+  { icon: Wand2, label: "Automate Anything", desc: "Just ask" },
+];
+
 function MascotWelcome() {
   return (
-    <div className="flex-1 flex flex-col items-center justify-center p-8 text-center relative overflow-hidden bg-background">
-      <div className="bg-orb w-[600px] h-[600px] bg-primary/10 top-0 left-[-100px]" style={{ animationDelay: '0s' }} />
-      <div className="bg-orb w-[500px] h-[500px] bg-cyan-400/10 bottom-[-100px] right-[-50px]" style={{ animationDelay: '1s' }} />
-      <div className="bg-orb w-[400px] h-[400px] bg-indigo-500/10 top-1/4 right-1/4" style={{ animationDelay: '2s' }} />
-      
-      <motion.div
-        animate={{ y: [0, -15, 0] }}
-        transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
-        className="w-52 h-52 mb-8 relative flex items-center justify-center"
-      >
-        <div className="absolute inset-0 bg-primary/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute inset-[-10%] border border-primary/20 rounded-full animate-[spin_10s_linear_infinite]" />
-        <div className="absolute inset-[-30%] border border-cyan-400/10 rounded-full animate-[spin_15s_linear_infinite_reverse]" />
+    <div className="flex-1 flex flex-col items-center justify-center p-6 md:p-10 text-center relative overflow-hidden bg-[#070711]">
+      {/* HUD grid */}
+      <div
+        className="absolute inset-0 opacity-[0.18]"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(124,58,237,0.35) 1px, transparent 1px), linear-gradient(90deg, rgba(124,58,237,0.35) 1px, transparent 1px)",
+          backgroundSize: "44px 44px",
+          maskImage: "radial-gradient(ellipse at center, black 25%, transparent 75%)",
+          WebkitMaskImage: "radial-gradient(ellipse at center, black 25%, transparent 75%)",
+        }}
+      />
+      <div className="bg-orb w-[600px] h-[600px] bg-primary/25 top-[-140px] left-[-120px]" style={{ animationDelay: '0s' }} />
+      <div className="bg-orb w-[500px] h-[500px] bg-cyan-400/20 bottom-[-160px] right-[-80px]" style={{ animationDelay: '1s' }} />
+      <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-[#070711] to-transparent" />
 
+      {/* status HUD */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative z-10 flex flex-wrap items-center justify-center gap-2.5 mb-8 text-[11px] font-mono uppercase tracking-[0.2em]"
+      >
+        <span className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-green-400/30 bg-green-400/10 text-green-300">
+          <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse shadow-[0_0_8px_#4ade80]" /> System Online
+        </span>
+        <span className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-cyan-400/30 bg-cyan-400/10 text-cyan-300">
+          <Cpu className="w-3 h-3" /> Neural Core Active
+        </span>
+        <span className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-primary/40 bg-primary/15 text-primary">
+          <ShieldCheck className="w-3 h-3" /> Autonomous Mode
+        </span>
+      </motion.div>
+
+      {/* agent core */}
+      <motion.div
+        animate={{ y: [0, -16, 0] }}
+        transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
+        className="w-44 h-44 md:w-56 md:h-56 mb-6 relative flex items-center justify-center"
+      >
+        <div className="absolute inset-0 bg-primary/30 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute inset-[-12%] border border-primary/30 rounded-full animate-[spin_12s_linear_infinite]" />
+        <div className="absolute inset-[-28%] border border-cyan-400/20 rounded-full animate-[spin_18s_linear_infinite_reverse]" />
+        <div className="absolute inset-[-46%] border border-dashed border-primary/15 rounded-full animate-[spin_34s_linear_infinite]" />
         <img
           src={mascotImg}
           alt="Made Super AI agent"
-          className="w-full h-full object-contain relative z-10 drop-shadow-[0_12px_30px_rgba(76,29,149,0.45)]"
+          className="w-full h-full object-contain relative z-10 drop-shadow-[0_16px_44px_rgba(124,58,237,0.65)]"
           draggable={false}
         />
       </motion.div>
 
-      <h1 className="text-5xl font-display font-extrabold mb-3 tracking-tight gradient-text relative z-10">
+      <h1 className="text-4xl md:text-6xl font-display font-extrabold mb-3 tracking-tight relative z-10 bg-gradient-to-r from-white via-primary to-cyan-300 bg-clip-text text-transparent">
         MADE SUPER AI AGENT
       </h1>
-      <p className="text-base font-semibold text-primary mb-6 relative z-10 tracking-wide">
-        Ready to help.
+      <p className="text-base md:text-lg text-slate-300 max-w-xl relative z-10 font-medium mb-10">
+        Your autonomous AI agent — it doesn't just chat, it{" "}
+        <span className="text-cyan-300 font-semibold">builds, ships, and runs</span> things for you. Ready to help.
       </p>
-      
-      <div className="flex gap-4 mb-8 relative z-10 flex-wrap justify-center">
-        <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-primary/10 to-transparent border border-primary/20 text-sm font-medium">
-          <Zap className="w-4 h-4 text-primary" /> Lightning Fast
-        </div>
-        <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-cyan-400/10 to-transparent border border-cyan-400/20 text-sm font-medium">
-          <Clock className="w-4 h-4 text-cyan-500" /> Always On
-        </div>
-        <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-indigo-500/10 to-transparent border border-indigo-500/20 text-sm font-medium">
-          <Lightbulb className="w-4 h-4 text-indigo-500" /> Knows Everything
-        </div>
+
+      {/* capability matrix */}
+      <div className="relative z-10 grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 max-w-3xl w-full mb-10">
+        {AGENT_CAPABILITIES.map((c, i) => (
+          <motion.div
+            key={c.label}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 + i * 0.07 }}
+            className="group flex items-center gap-3 p-3 md:p-4 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm text-left hover:border-primary/40 hover:bg-primary/[0.06] transition-all"
+          >
+            <div className="w-9 h-9 md:w-10 md:h-10 shrink-0 rounded-xl bg-gradient-to-br from-primary/30 to-cyan-400/20 border border-white/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <c.icon className="w-4 h-4 md:w-5 md:h-5 text-cyan-300" />
+            </div>
+            <div className="min-w-0">
+              <div className="text-sm font-semibold text-white truncate">{c.label}</div>
+              <div className="text-[11px] text-slate-400 truncate">{c.desc}</div>
+            </div>
+          </motion.div>
+        ))}
       </div>
-      
-      <p className="text-xl text-muted-foreground max-w-md relative z-10 font-medium tracking-wide">
-        Your intelligent partner. Ask anything — tech, life, the universe, whatever.
-      </p>
+
+      {/* CTA hint */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.8 }}
+        className="relative z-10 flex items-center gap-2 text-sm text-slate-400 font-medium"
+      >
+        <Sparkles className="w-4 h-4 text-primary" />
+        Hit <span className="text-white font-semibold">New Chat</span> and tell your agent what to build
+        <ArrowRight className="w-4 h-4 text-cyan-300 animate-pulse" />
+      </motion.div>
     </div>
   );
 }

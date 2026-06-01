@@ -100,6 +100,9 @@ async function buildAll() {
       "puppeteer",
       "puppeteer-core",
       "electron",
+      // Resolves its SQL migrations dir relative to its own __dirname at runtime;
+      // bundling breaks that path so migrations silently skip. Keep external.
+      "stripe-replit-sync",
     ],
     sourcemap: "linked",
     plugins: [

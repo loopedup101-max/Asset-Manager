@@ -1,6 +1,8 @@
+@layer theme, base, clerk, components, utilities;
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "@clerk/themes/shadcn.css";
 @plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:is(.dark *));
@@ -169,4 +171,8 @@
   animation: float 5s infinite ease-in-out, orb-drift 20s infinite linear;
   pointer-events: none;
   z-index: 0;
+}
+.cl-formFieldInput::placeholder {
+  color: #64748b;
+  opacity: 1;
 }

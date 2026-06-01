@@ -546,20 +546,23 @@ export function ToolsPage() {
   const currentScripts = SCRIPTS[os];
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden bg-background">
-      <div className="p-6 border-b bg-white/80 backdrop-blur-md shrink-0">
-        <h1 className="text-3xl font-display font-extrabold gradient-text">System Tools</h1>
-        <p className="text-muted-foreground mt-1 font-medium">File Manager with browser access + ready-to-run cleanup scripts for every OS.</p>
+    <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#070711] relative">
+      <div className="bg-orb w-[500px] h-[500px] bg-primary/20 top-[-140px] left-[-120px]" />
+      <div className="bg-orb w-[420px] h-[420px] bg-cyan-400/15 bottom-[-160px] right-[-80px]" style={{ animationDelay: "1s" }} />
+
+      <div className="p-6 border-b border-white/10 bg-white/[0.03] backdrop-blur-md shrink-0 relative z-10">
+        <h1 className="text-3xl font-display font-extrabold bg-gradient-to-r from-white via-primary to-cyan-300 bg-clip-text text-transparent">System Tools</h1>
+        <p className="text-slate-400 mt-1 font-medium">File Manager with browser access + ready-to-run cleanup scripts for every OS.</p>
       </div>
 
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden relative z-10">
         <Tabs defaultValue="files" className="h-full flex flex-col">
-          <div className="px-6 pt-4 border-b bg-white shrink-0">
-            <TabsList className="h-11">
-              <TabsTrigger value="files" className="gap-2 font-semibold">
+          <div className="px-6 pt-4 border-b border-white/10 bg-white/[0.02] shrink-0">
+            <TabsList className="h-11 bg-white/5 border border-white/10">
+              <TabsTrigger value="files" className="gap-2 font-semibold text-slate-300 data-[state=active]:bg-white/10 data-[state=active]:text-white">
                 <FolderTree className="w-4 h-4" /> File Manager
               </TabsTrigger>
-              <TabsTrigger value="scripts" className="gap-2 font-semibold">
+              <TabsTrigger value="scripts" className="gap-2 font-semibold text-slate-300 data-[state=active]:bg-white/10 data-[state=active]:text-white">
                 <Terminal className="w-4 h-4" /> System Scripts
               </TabsTrigger>
             </TabsList>
@@ -570,22 +573,22 @@ export function ToolsPage() {
             <div className="h-full flex flex-col p-6 gap-4">
               {!dirName ? (
                 <div className="flex-1 flex flex-col items-center justify-center text-center gap-6">
-                  <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-primary/20 to-blue-400/20 flex items-center justify-center border border-primary/20 shadow-lg">
-                    <FolderOpen className="w-12 h-12 text-primary" />
+                  <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-primary/30 to-cyan-400/20 flex items-center justify-center border border-white/10 shadow-[0_0_40px_rgba(124,58,237,0.12)]">
+                    <FolderOpen className="w-12 h-12 text-cyan-300" />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-display font-bold mb-2">Grant Folder Access</h2>
-                    <p className="text-muted-foreground max-w-md font-medium">
+                    <h2 className="text-2xl font-display font-extrabold mb-2 bg-gradient-to-r from-white to-cyan-200 bg-clip-text text-transparent">Grant Folder Access</h2>
+                    <p className="text-slate-300 max-w-md font-medium">
                       Click below and choose a folder. Your browser will ask for permission — once granted, Made Super AI can read, analyze, and help you clean up that folder.
                     </p>
-                    <p className="text-xs text-muted-foreground/60 mt-3 max-w-sm mx-auto">
+                    <p className="text-xs text-slate-500 mt-3 max-w-sm mx-auto">
                       Access is limited to the folder you pick. Nothing outside that folder is touched.
                     </p>
                   </div>
                   <Button
                     size="lg"
                     onClick={handleGrantAccess}
-                    className="gap-3 h-14 px-8 text-base font-bold bg-gradient-to-r from-primary to-blue-600 shadow-lg hover:scale-105 transition-all"
+                    className="gap-3 h-14 px-8 text-base font-bold bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-500 text-white shadow-[0_0_15px_rgba(91,33,182,0.5)] border-0 hover:scale-105 transition-all"
                   >
                     <FolderOpen className="w-5 h-5" />
                     Choose a Folder
@@ -595,32 +598,32 @@ export function ToolsPage() {
                 <>
                   {/* Stats bar */}
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 shrink-0">
-                    <Card className="border-primary/20">
+                    <Card className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm hover:border-primary/40 transition-all">
                       <CardContent className="p-4">
-                        <div className="text-xs text-muted-foreground font-semibold uppercase tracking-wide mb-1">Total Files</div>
-                        <div className="text-2xl font-bold">{files.filter(f => f.kind === "file").length}</div>
-                        <div className="text-xs text-muted-foreground">{formatBytes(totalSize)}</div>
+                        <div className="text-xs text-slate-400 font-semibold uppercase tracking-wide mb-1">Total Files</div>
+                        <div className="text-2xl font-bold text-white">{files.filter(f => f.kind === "file").length}</div>
+                        <div className="text-xs text-slate-400">{formatBytes(totalSize)}</div>
                       </CardContent>
                     </Card>
-                    <Card className="border-red-200">
+                    <Card className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm hover:border-primary/40 transition-all">
                       <CardContent className="p-4">
-                        <div className="text-xs text-muted-foreground font-semibold uppercase tracking-wide mb-1">Junk Files</div>
-                        <div className="text-2xl font-bold text-red-500">{junkFiles.length}</div>
-                        <div className="text-xs text-muted-foreground">{formatBytes(junkSize)}</div>
+                        <div className="text-xs text-slate-400 font-semibold uppercase tracking-wide mb-1">Junk Files</div>
+                        <div className="text-2xl font-bold text-red-400">{junkFiles.length}</div>
+                        <div className="text-xs text-slate-400">{formatBytes(junkSize)}</div>
                       </CardContent>
                     </Card>
-                    <Card className="border-orange-200">
+                    <Card className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm hover:border-primary/40 transition-all">
                       <CardContent className="p-4">
-                        <div className="text-xs text-muted-foreground font-semibold uppercase tracking-wide mb-1">Large Files</div>
-                        <div className="text-2xl font-bold text-orange-500">{largeFiles.length}</div>
-                        <div className="text-xs text-muted-foreground">over 50 MB each</div>
+                        <div className="text-xs text-slate-400 font-semibold uppercase tracking-wide mb-1">Large Files</div>
+                        <div className="text-2xl font-bold text-orange-400">{largeFiles.length}</div>
+                        <div className="text-xs text-slate-400">over 50 MB each</div>
                       </CardContent>
                     </Card>
-                    <Card className="border-green-200">
+                    <Card className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm hover:border-primary/40 transition-all">
                       <CardContent className="p-4">
-                        <div className="text-xs text-muted-foreground font-semibold uppercase tracking-wide mb-1">Selected</div>
-                        <div className="text-2xl font-bold text-green-600">{selectedFiles.size}</div>
-                        <div className="text-xs text-muted-foreground">
+                        <div className="text-xs text-slate-400 font-semibold uppercase tracking-wide mb-1">Selected</div>
+                        <div className="text-2xl font-bold text-green-400">{selectedFiles.size}</div>
+                        <div className="text-xs text-slate-400">
                           {formatBytes(files.filter(f => selectedFiles.has(f.path)).reduce((s, f) => s + f.size, 0))}
                         </div>
                       </CardContent>
@@ -629,11 +632,11 @@ export function ToolsPage() {
 
                   {/* Action bar */}
                   <div className="flex items-center gap-3 flex-wrap shrink-0">
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full text-sm font-semibold text-primary">
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-cyan-400/30 bg-cyan-400/10 text-cyan-300 text-sm font-semibold">
                       <FolderOpen className="w-4 h-4" />
                       {dirName}
                     </div>
-                    <Button variant="outline" size="sm" onClick={handleGrantAccess} className="gap-2">
+                    <Button variant="outline" size="sm" onClick={handleGrantAccess} className="gap-2 bg-white/5 border border-white/15 text-white hover:bg-white/10 hover:text-white">
                       <RefreshCw className="w-4 h-4" /> Change Folder
                     </Button>
                     {selectedFiles.size > 0 && (
@@ -650,11 +653,11 @@ export function ToolsPage() {
 
                   {/* Junk suggestion */}
                   {junkFiles.length > 0 && (
-                    <div className="flex items-center gap-3 p-3 rounded-xl bg-red-50 border border-red-200 shrink-0">
-                      <AlertTriangle className="w-5 h-5 text-red-500 shrink-0" />
+                    <div className="flex items-center gap-3 p-3 rounded-xl border border-red-400/30 bg-red-400/10 shrink-0">
+                      <AlertTriangle className="w-5 h-5 text-red-400 shrink-0" />
                       <div className="flex-1 text-sm">
-                        <span className="font-semibold text-red-700">Found {junkFiles.length} junk files</span>
-                        <span className="text-red-600"> ({formatBytes(junkSize)}) — .tmp, .log, .bak, .cache files you probably don't need.</span>
+                        <span className="font-semibold text-red-300">Found {junkFiles.length} junk files</span>
+                        <span className="text-red-300/80"> ({formatBytes(junkSize)}) — .tmp, .log, .bak, .cache files you probably don't need.</span>
                       </div>
                       <Button
                         size="sm"
@@ -675,7 +678,7 @@ export function ToolsPage() {
                       variant="ghost"
                       size="sm"
                       onClick={selectAll}
-                      className="text-xs font-semibold"
+                      className="text-xs font-semibold text-slate-300 hover:bg-white/10 hover:text-white"
                     >
                       {filteredFiles.every(f => selectedFiles.has(f.path)) ? "Deselect All" : "Select All"}
                     </Button>
@@ -687,8 +690,8 @@ export function ToolsPage() {
                           className={cn(
                             "px-3 py-1 rounded-full text-xs font-semibold border transition-all",
                             filter === cat
-                              ? "bg-primary text-white border-primary"
-                              : "border-border text-muted-foreground hover:border-primary/40"
+                              ? "bg-gradient-to-r from-primary to-blue-600 text-white border-0 shadow-[0_0_15px_rgba(91,33,182,0.5)]"
+                              : "border-white/15 bg-white/5 text-slate-300 hover:border-primary/40 hover:text-white"
                           )}
                         >
                           {cat}
@@ -698,55 +701,55 @@ export function ToolsPage() {
                   </div>
 
                   {/* File list */}
-                  <ScrollArea className="flex-1 rounded-xl border bg-white">
+                  <ScrollArea className="flex-1 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm">
                     {scanning ? (
-                      <div className="flex items-center justify-center h-40 gap-3 text-muted-foreground">
+                      <div className="flex items-center justify-center h-40 gap-3 text-slate-400">
                         <RefreshCw className="w-5 h-5 animate-spin" />
                         <span className="font-medium">Scanning folder...</span>
                       </div>
                     ) : filteredFiles.length === 0 ? (
-                      <div className="flex items-center justify-center h-40 text-muted-foreground font-medium">
+                      <div className="flex items-center justify-center h-40 text-slate-400 font-medium">
                         No files in this category.
                       </div>
                     ) : (
-                      <div className="divide-y">
+                      <div className="divide-y divide-white/5">
                         {filteredFiles.map((file) => (
                           <div
                             key={file.path}
                             onClick={() => file.kind === "file" && toggleSelect(file.path)}
                             className={cn(
                               "flex items-center gap-3 px-4 py-2.5 text-sm transition-colors",
-                              file.kind === "file" ? "cursor-pointer hover:bg-slate-50" : "bg-slate-50/50 cursor-default",
-                              selectedFiles.has(file.path) && "bg-primary/8 border-l-4 border-l-primary"
+                              file.kind === "file" ? "cursor-pointer hover:bg-white/5" : "bg-white/[0.02] cursor-default",
+                              selectedFiles.has(file.path) && "bg-primary/10 border-l-4 border-l-primary"
                             )}
                           >
                             {file.kind === "file" && (
                               <div className={cn(
                                 "w-4 h-4 rounded border-2 shrink-0 flex items-center justify-center",
-                                selectedFiles.has(file.path) ? "bg-primary border-primary" : "border-slate-300"
+                                selectedFiles.has(file.path) ? "bg-primary border-primary" : "border-white/30"
                               )}>
                                 {selectedFiles.has(file.path) && <CheckCircle2 className="w-3 h-3 text-white" />}
                               </div>
                             )}
-                            {file.kind === "directory" && <FolderOpen className="w-4 h-4 text-amber-500 shrink-0" />}
+                            {file.kind === "directory" && <FolderOpen className="w-4 h-4 text-amber-400 shrink-0" />}
                             <div className="flex-1 min-w-0">
-                              <div className="font-medium truncate">{file.name}</div>
-                              <div className="text-xs text-muted-foreground truncate">{file.path}</div>
+                              <div className="font-medium truncate text-slate-200">{file.name}</div>
+                              <div className="text-xs text-slate-500 truncate">{file.path}</div>
                             </div>
                             <Badge
                               variant="outline"
                               className={cn(
-                                "text-[10px] shrink-0",
-                                file.type === "Junk" && "border-red-300 text-red-600 bg-red-50",
-                                file.type === "Image" && "border-blue-300 text-blue-600",
-                                file.type === "Video" && "border-purple-300 text-purple-600",
-                                file.type === "Document" && "border-green-300 text-green-600",
-                                file.type === "Code" && "border-cyan-300 text-cyan-600",
+                                "text-[10px] shrink-0 border-white/15 text-slate-300 bg-white/5",
+                                file.type === "Junk" && "border-red-400/40 text-red-300 bg-red-400/10",
+                                file.type === "Image" && "border-blue-400/40 text-blue-300 bg-blue-400/10",
+                                file.type === "Video" && "border-purple-400/40 text-purple-300 bg-purple-400/10",
+                                file.type === "Document" && "border-green-400/40 text-green-300 bg-green-400/10",
+                                file.type === "Code" && "border-cyan-400/40 text-cyan-300 bg-cyan-400/10",
                               )}
                             >
                               {file.type}
                             </Badge>
-                            <span className="text-xs text-muted-foreground font-mono shrink-0 w-16 text-right">
+                            <span className="text-xs text-slate-400 font-mono shrink-0 w-16 text-right">
                               {file.kind === "file" ? formatBytes(file.size) : ""}
                             </span>
                           </div>
@@ -771,8 +774,8 @@ export function ToolsPage() {
                     className={cn(
                       "flex items-center gap-2.5 px-5 py-3 rounded-xl font-semibold text-sm border-2 transition-all",
                       os === id
-                        ? "bg-primary text-white border-primary shadow-lg"
-                        : "border-border text-muted-foreground hover:border-primary/40 hover:bg-primary/5"
+                        ? "bg-gradient-to-r from-primary to-blue-600 text-white border-transparent shadow-[0_0_15px_rgba(91,33,182,0.5)]"
+                        : "border-white/15 bg-white/5 text-slate-300 hover:border-primary/40 hover:text-white"
                     )}
                   >
                     <Icon className="w-4 h-4" />
@@ -781,9 +784,9 @@ export function ToolsPage() {
                 ))}
               </div>
 
-              <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-50 border border-amber-200">
-                <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-                <div className="text-sm text-amber-800">
+              <div className="flex items-start gap-3 p-4 rounded-xl border border-amber-400/30 bg-amber-400/10">
+                <AlertTriangle className="w-5 h-5 text-amber-300 shrink-0 mt-0.5" />
+                <div className="text-sm text-amber-200">
                   <strong>Before running any script:</strong> Read what it does. Scripts marked "Administrator" or "sudo" need elevated privileges. When in doubt, run one line at a time.
                 </div>
               </div>
@@ -792,23 +795,23 @@ export function ToolsPage() {
                 {currentScripts.map((item) => {
                   const Icon = item.icon;
                   return (
-                    <Card key={item.id} className="border shadow-sm hover:shadow-md transition-shadow">
+                    <Card key={item.id} className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm hover:border-primary/40 transition-all">
                       <CardHeader className="pb-3">
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                              <Icon className="w-5 h-5 text-primary" />
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/30 to-cyan-400/20 border border-white/10 flex items-center justify-center shrink-0">
+                              <Icon className="w-5 h-5 text-cyan-300" />
                             </div>
                             <div>
-                              <CardTitle className="text-base">{item.title}</CardTitle>
-                              <CardDescription className="text-sm mt-0.5">{item.description}</CardDescription>
+                              <CardTitle className="text-base text-white">{item.title}</CardTitle>
+                              <CardDescription className="text-sm mt-0.5 text-slate-400">{item.description}</CardDescription>
                             </div>
                           </div>
                           <Button
                             size="sm"
                             variant="outline"
                             onClick={() => copyScript(item.script, item.title)}
-                            className="gap-2 shrink-0 font-semibold"
+                            className="gap-2 shrink-0 font-semibold bg-white/5 border border-white/15 text-white hover:bg-white/10 hover:text-white"
                           >
                             <Copy className="w-3.5 h-3.5" />
                             Copy Script
@@ -816,7 +819,7 @@ export function ToolsPage() {
                         </div>
                       </CardHeader>
                       <CardContent className="pt-0">
-                        <pre className="bg-slate-900 text-slate-100 rounded-xl p-4 text-xs overflow-x-auto font-mono leading-relaxed max-h-48 overflow-y-auto">
+                        <pre className="bg-black/40 border border-white/10 text-slate-200 rounded-xl p-4 text-xs overflow-x-auto font-mono leading-relaxed max-h-48 overflow-y-auto">
                           {item.script}
                         </pre>
                       </CardContent>
@@ -825,13 +828,13 @@ export function ToolsPage() {
                 })}
               </div>
 
-              <Card className="border-primary/30 bg-primary/5">
+              <Card className="rounded-2xl border border-primary/30 bg-white/[0.03] backdrop-blur-sm shadow-[0_0_40px_rgba(124,58,237,0.12)]">
                 <CardHeader>
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Zap className="w-5 h-5 text-primary" />
+                  <CardTitle className="text-base flex items-center gap-2 text-white">
+                    <Zap className="w-5 h-5 text-cyan-300" />
                     Need a custom script?
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-slate-400">
                     Go to Chat and ask Made Super AI — describe your problem and it will write a script specifically for your situation, explain every line, and walk you through running it safely.
                   </CardDescription>
                 </CardHeader>

@@ -1,11 +1,20 @@
 import { formatDistanceToNow } from "date-fns";
-import { Plus, MessageSquare, Settings, Trash2, Menu, Zap, Share2, Wrench, Clapperboard, Blocks } from "lucide-react";
+import { Plus, MessageSquare, Settings, Trash2, Menu, Zap, Share2, Wrench, Clapperboard, Blocks, Lock, Crown, LogOut, User as UserIcon, Sparkles } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useListConversations, useCreateConversation, useDeleteConversation, getListConversationsQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useClerk } from "@clerk/react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useMe } from "@/hooks/useMe";
+
+const NAV_ITEMS = [
+  { href: "/social", label: "Social Hub", icon: Share2 },
+  { href: "/builder", label: "App Builder", icon: Blocks },
+  { href: "/studio", label: "Video Studio", icon: Clapperboard },
+  { href: "/tools", label: "System Tools", icon: Wrench },
+];
 
 export function Sidebar({ className, isMobile = false }: { className?: string, isMobile?: boolean }) {
   const { data: conversations, isLoading } = useListConversations();
@@ -13,6 +22,12 @@ export function Sidebar({ className, isMobile = false }: { className?: string, i
   const deleteConversation = useDeleteConversation();
   const queryClient = useQueryClient();
   const [location, setLocation] = useLocation();
+  const { data: me } = useMe();
+  const { signOut } = useClerk();
+
+  const entitled = me?.entitled ?? false;
+  const isOwner = me?.plan === "owner";
+  const email = me?.user.email ?? "";
 
   const activeId = location.startsWith("/c/") ? parseInt(location.split("/")[2]) : null;
 
@@ -78,30 +93,19 @@ export function Sidebar({ className, isMobile = false }: { className?: string, i
             <span className={cn("font-medium text-sm", (location === "/" || location.startsWith("/c/")) && "text-white font-semibold")}>Chat</span>
           </div>
         </Link>
-        <Link href="/social">
-          <div className={cn("flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-300 border border-transparent", location.startsWith("/social") ? "bg-gradient-to-r from-primary/30 to-blue-600/10 text-white border-primary/30 shadow-[0_0_15px_rgba(91,33,182,0.2)]" : "hover:bg-white/5 text-white/70 border-white/5")}>
-            <Share2 className={cn("w-5 h-5 shrink-0", location.startsWith("/social") ? "text-cyan-400" : "text-white/40")} />
-            <span className={cn("font-medium text-sm", location.startsWith("/social") && "text-white font-semibold")}>Social Hub</span>
-          </div>
-        </Link>
-        <Link href="/builder">
-          <div className={cn("flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-300 border border-transparent", location.startsWith("/builder") ? "bg-gradient-to-r from-primary/30 to-blue-600/10 text-white border-primary/30 shadow-[0_0_15px_rgba(91,33,182,0.2)]" : "hover:bg-white/5 text-white/70 border-white/5")}>
-            <Blocks className={cn("w-5 h-5 shrink-0", location.startsWith("/builder") ? "text-cyan-400" : "text-white/40")} />
-            <span className={cn("font-medium text-sm", location.startsWith("/builder") && "text-white font-semibold")}>App Builder</span>
-          </div>
-        </Link>
-        <Link href="/studio">
-          <div className={cn("flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-300 border border-transparent", location.startsWith("/studio") ? "bg-gradient-to-r from-primary/30 to-blue-600/10 text-white border-primary/30 shadow-[0_0_15px_rgba(91,33,182,0.2)]" : "hover:bg-white/5 text-white/70 border-white/5")}>
-            <Clapperboard className={cn("w-5 h-5 shrink-0", location.startsWith("/studio") ? "text-cyan-400" : "text-white/40")} />
-            <span className={cn("font-medium text-sm", location.startsWith("/studio") && "text-white font-semibold")}>Video Studio</span>
-          </div>
-        </Link>
-        <Link href="/tools">
-          <div className={cn("flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-300 border border-transparent", location.startsWith("/tools") ? "bg-gradient-to-r from-primary/30 to-blue-600/10 text-white border-primary/30 shadow-[0_0_15px_rgba(91,33,182,0.2)]" : "hover:bg-white/5 text-white/70 border-white/5")}>
-            <Wrench className={cn("w-5 h-5 shrink-0", location.startsWith("/tools") ? "text-cyan-400" : "text-white/40")} />
-            <span className={cn("font-medium text-sm", location.startsWith("/tools") && "text-white font-semibold")}>System Tools</span>
-          </div>
-        </Link>
+        {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+          const active = location.startsWith(href);
+          const locked = !entitled;
+          return (
+            <Link key={href} href={href}>
+              <div className={cn("group flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-300 border border-transparent", active ? "bg-gradient-to-r from-primary/30 to-blue-600/10 text-white border-primary/30 shadow-[0_0_15px_rgba(91,33,182,0.2)]" : "hover:bg-white/5 text-white/70 border-white/5")}>
+                <Icon className={cn("w-5 h-5 shrink-0", active ? "text-cyan-400" : "text-white/40")} />
+                <span className={cn("font-medium text-sm flex-1", active && "text-white font-semibold")}>{label}</span>
+                {locked && <Lock className="w-3.5 h-3.5 text-white/30 shrink-0" />}
+              </div>
+            </Link>
+          );
+        })}
       </div>
 
       <div className="px-3 pb-2 text-xs font-semibold text-white/30 uppercase tracking-wider">Conversations</div>
@@ -153,12 +157,52 @@ export function Sidebar({ className, isMobile = false }: { className?: string, i
         )}
       </div>
 
-      <div className="p-4 mt-auto space-y-2">
-        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-black/20 border border-white/5">
-          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.8)]" />
-          <span className="text-xs font-semibold tracking-wide uppercase text-white/60">Powered by AI</span>
+      {/* Account footer */}
+      <div className="p-3 mt-auto border-t border-white/5 space-y-2">
+        {!entitled && (
+          <Link href="/pricing">
+            <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl cursor-pointer bg-gradient-to-r from-primary/25 to-cyan-400/10 border border-primary/30 hover:from-primary/35 transition-all">
+              <Sparkles className="w-4 h-4 text-cyan-300 shrink-0" />
+              <span className="text-sm font-semibold text-white">Upgrade to unlock</span>
+            </div>
+          </Link>
+        )}
+
+        <div className="flex items-center gap-3 px-2 py-2">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary/40 to-cyan-400/20 border border-white/10 flex items-center justify-center text-sm font-display font-bold text-white shrink-0">
+            {(email || "?").charAt(0).toUpperCase()}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="text-sm font-medium text-white truncate">{email || "Account"}</div>
+            <div className="flex items-center gap-1">
+              {isOwner ? (
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-amber-300">
+                  <Crown className="w-3 h-3" /> Owner
+                </span>
+              ) : entitled ? (
+                <span className="text-[10px] font-bold uppercase tracking-wide text-cyan-300">Pro</span>
+              ) : (
+                <span className="text-[10px] font-bold uppercase tracking-wide text-white/40">Free</span>
+              )}
+            </div>
+          </div>
         </div>
-        <div className="px-1 text-center">
+
+        <div className="flex gap-2">
+          <Link href="/account" className="flex-1">
+            <div className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg cursor-pointer bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-xs font-semibold text-white/80">
+              <UserIcon className="w-3.5 h-3.5" /> Account
+            </div>
+          </Link>
+          <button
+            onClick={() => signOut({ redirectUrl: "/" })}
+            className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-red-500/15 hover:border-red-400/30 hover:text-red-300 transition-all text-xs font-semibold text-white/80"
+          >
+            <LogOut className="w-3.5 h-3.5" /> Sign out
+          </button>
+        </div>
+
+        <div className="px-1 text-center pt-1">
           <Link href="/terms">
             <span className="text-[11px] text-white/40 hover:text-white/70 transition-colors cursor-pointer">
               Terms &amp; Conditions

@@ -146,32 +146,35 @@ export function BuilderPage() {
   const deviceWidth = device === "mobile" ? "390px" : device === "tablet" ? "768px" : "100%";
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden bg-background">
-      <div className="p-6 border-b bg-white/80 backdrop-blur-md shrink-0">
-        <h1 className="text-3xl font-display font-extrabold gradient-text flex items-center gap-3">
-          <Blocks className="w-8 h-8 text-primary" />
+    <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#070711] relative">
+      <div className="bg-orb w-[500px] h-[500px] bg-primary/20 top-[-140px] left-[-120px]" />
+      <div className="bg-orb w-[420px] h-[420px] bg-cyan-400/15 bottom-[-160px] right-[-80px]" style={{ animationDelay: "1s" }} />
+
+      <div className="p-6 border-b border-white/10 bg-white/[0.02] backdrop-blur-md shrink-0 relative z-10">
+        <h1 className="text-3xl font-display font-extrabold flex items-center gap-3 bg-gradient-to-r from-white via-primary to-cyan-300 bg-clip-text text-transparent">
+          <Blocks className="w-8 h-8 text-cyan-300" />
           App Builder
         </h1>
-        <p className="text-muted-foreground mt-1 font-medium">
+        <p className="text-slate-300 mt-1 font-medium">
           Describe any app and the AI builds it for real — fully working, live preview, downloadable.
         </p>
       </div>
 
-      <div className="flex-1 overflow-hidden flex flex-col lg:flex-row">
+      <div className="flex-1 overflow-hidden flex flex-col lg:flex-row relative z-10">
         {/* Left: prompt + controls */}
-        <div className="lg:w-[380px] shrink-0 border-r bg-white overflow-y-auto p-5 space-y-4">
+        <div className="lg:w-[380px] shrink-0 border-r border-white/10 bg-white/[0.02] overflow-y-auto p-5 space-y-4">
           <div className="space-y-2">
-            <label className="font-semibold text-sm">What app should I build?</label>
+            <label className="font-semibold text-sm text-slate-300">What app should I build?</label>
             <Textarea
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               placeholder="e.g. A habit tracker where I add habits, check them off daily, and see a streak counter — saved in my browser"
-              className="min-h-[120px] resize-none"
+              className="min-h-[120px] resize-none bg-white/5 border-white/10 text-white placeholder:text-slate-500"
             />
             <Button
               onClick={() => build(prompt, false)}
               disabled={building}
-              className="w-full gap-2 font-bold h-12 bg-gradient-to-r from-primary to-blue-600 shadow-lg"
+              className="w-full gap-2 font-bold h-12 bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-500 text-white shadow-[0_0_15px_rgba(91,33,182,0.5)] border-0"
             >
               {building && !html ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
               {building && !html ? "Building your app..." : "Build App"}
@@ -180,13 +183,13 @@ export function BuilderPage() {
 
           {!html && (
             <div className="space-y-2 pt-2">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Try one of these</p>
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Try one of these</p>
               <div className="space-y-2">
                 {EXAMPLES.map((ex) => (
                   <button
                     key={ex}
                     onClick={() => setPrompt(ex)}
-                    className="w-full text-left text-sm p-3 rounded-lg border border-border hover:border-primary/40 hover:bg-primary/5 transition-colors"
+                    className="w-full text-left text-sm p-3 rounded-xl border border-white/10 bg-white/[0.03] backdrop-blur-sm text-slate-300 hover:border-primary/40 hover:bg-primary/[0.06] transition-all"
                   >
                     {ex}
                   </button>
@@ -196,21 +199,21 @@ export function BuilderPage() {
           )}
 
           {html && (
-            <div className="space-y-3 pt-2 border-t">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
-                <Wand2 className="w-3.5 h-3.5" /> Refine your app
+            <div className="space-y-3 pt-2 border-t border-white/10">
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide flex items-center gap-1.5">
+                <Wand2 className="w-3.5 h-3.5 text-cyan-300" /> Refine your app
               </p>
               <Textarea
                 value={changeReq}
                 onChange={(e) => setChangeReq(e.target.value)}
                 placeholder="e.g. Add a dark mode toggle, make the buttons rounded, add a reset button"
-                className="min-h-[80px] resize-none text-sm"
+                className="min-h-[80px] resize-none text-sm bg-white/5 border-white/10 text-white placeholder:text-slate-500"
               />
               <Button
                 onClick={() => build(changeReq, true)}
                 disabled={building}
                 variant="outline"
-                className="w-full gap-2 font-semibold"
+                className="w-full gap-2 font-semibold bg-white/5 border border-white/15 text-white hover:bg-white/10 hover:text-white"
               >
                 {building ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
                 {building ? "Updating..." : "Apply Change"}
@@ -220,31 +223,31 @@ export function BuilderPage() {
         </div>
 
         {/* Right: preview / code */}
-        <div className="flex-1 flex flex-col min-w-0 bg-slate-50">
+        <div className="flex-1 flex flex-col min-w-0 bg-transparent">
           {/* Toolbar */}
-          <div className="flex items-center gap-2 px-4 py-2.5 border-b bg-white shrink-0 flex-wrap">
-            <div className="flex rounded-lg border overflow-hidden">
+          <div className="flex items-center gap-2 px-4 py-2.5 border-b border-white/10 bg-white/[0.02] shrink-0 flex-wrap">
+            <div className="flex rounded-lg border border-white/10 overflow-hidden">
               <button
                 onClick={() => setView("preview")}
-                className={cn("flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold transition-colors", view === "preview" ? "bg-primary text-white" : "text-muted-foreground hover:bg-muted")}
+                className={cn("flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold transition-colors", view === "preview" ? "bg-gradient-to-r from-primary to-blue-600 text-white" : "text-slate-400 hover:bg-white/5 hover:text-white")}
               >
                 <Monitor className="w-4 h-4" /> Preview
               </button>
               <button
                 onClick={() => setView("code")}
-                className={cn("flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold transition-colors", view === "code" ? "bg-primary text-white" : "text-muted-foreground hover:bg-muted")}
+                className={cn("flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold transition-colors", view === "code" ? "bg-gradient-to-r from-primary to-blue-600 text-white" : "text-slate-400 hover:bg-white/5 hover:text-white")}
               >
                 <Code2 className="w-4 h-4" /> Code
               </button>
             </div>
 
             {view === "preview" && html && (
-              <div className="flex rounded-lg border overflow-hidden">
+              <div className="flex rounded-lg border border-white/10 overflow-hidden">
                 {([["desktop", Maximize2], ["tablet", Tablet], ["mobile", Smartphone]] as const).map(([d, Icon]) => (
                   <button
                     key={d}
                     onClick={() => setDevice(d)}
-                    className={cn("px-2.5 py-1.5 transition-colors", device === d ? "bg-slate-800 text-white" : "text-muted-foreground hover:bg-muted")}
+                    className={cn("px-2.5 py-1.5 transition-colors", device === d ? "bg-white/10 text-cyan-300" : "text-slate-400 hover:bg-white/5 hover:text-white")}
                     title={d}
                   >
                     <Icon className="w-4 h-4" />
@@ -256,10 +259,10 @@ export function BuilderPage() {
             <div className="ml-auto flex items-center gap-2">
               {html && (
                 <>
-                  <Button size="sm" variant="outline" onClick={openInNewTab} className="gap-1.5">
+                  <Button size="sm" variant="outline" onClick={openInNewTab} className="gap-1.5 bg-white/5 border border-white/15 text-white hover:bg-white/10 hover:text-white">
                     <ExternalLink className="w-4 h-4" /> Open
                   </Button>
-                  <Button size="sm" onClick={download} className="gap-1.5 bg-gradient-to-r from-green-600 to-emerald-500">
+                  <Button size="sm" onClick={download} className="gap-1.5 bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-500 hover:to-emerald-400 text-white border-0">
                     <Download className="w-4 h-4" /> Download
                   </Button>
                 </>
@@ -270,10 +273,10 @@ export function BuilderPage() {
           {/* Content */}
           <div className="flex-1 overflow-auto relative">
             {building && (
-              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/70 backdrop-blur-sm gap-3">
-                <Loader2 className="w-10 h-10 animate-spin text-primary" />
-                <p className="font-semibold text-foreground">{html ? "Updating your app..." : "Building your app..."}</p>
-                <p className="text-sm text-muted-foreground">
+              <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-[#070711]/80 backdrop-blur-sm gap-3">
+                <Loader2 className="w-10 h-10 animate-spin text-cyan-300" />
+                <p className="font-semibold text-white">{html ? "Updating your app..." : "Building your app..."}</p>
+                <p className="text-sm text-slate-400">
                   {progressChars > 0
                     ? `Writing real, working code — ${progressChars.toLocaleString()} characters so far...`
                     : "Writing real, working code. This can take a moment."}
@@ -282,27 +285,27 @@ export function BuilderPage() {
             )}
 
             {!html && !building && (
-              <div className="h-full flex flex-col items-center justify-center text-muted-foreground p-8 text-center">
-                <Blocks className="w-16 h-16 mb-4 opacity-20" />
-                <p className="font-medium max-w-md">Describe an app on the left and the AI will build a complete, working version you can use right here and download.</p>
+              <div className="h-full flex flex-col items-center justify-center text-slate-400 p-8 text-center">
+                <Blocks className="w-16 h-16 mb-4 opacity-20 text-cyan-300" />
+                <p className="font-medium max-w-md text-slate-300">Describe an app on the left and the AI will build a complete, working version you can use right here and download.</p>
               </div>
             )}
 
             {html && view === "preview" && (
-              <div className="h-full flex justify-center bg-slate-100 p-4">
+              <div className="h-full flex justify-center p-4">
                 <iframe
                   ref={iframeRef}
                   title="App preview"
                   srcDoc={html}
                   sandbox="allow-scripts allow-modals allow-forms allow-popups allow-same-origin"
-                  className="bg-white rounded-lg shadow-lg border h-full transition-all"
+                  className="bg-white rounded-xl shadow-[0_0_40px_rgba(124,58,237,0.12)] border border-white/10 h-full transition-all"
                   style={{ width: deviceWidth, maxWidth: "100%" }}
                 />
               </div>
             )}
 
             {html && view === "code" && (
-              <pre className="text-xs leading-relaxed p-4 font-mono text-slate-800 whitespace-pre-wrap break-words">
+              <pre className="text-xs leading-relaxed p-4 font-mono text-slate-300 whitespace-pre-wrap break-words">
                 {html}
               </pre>
             )}
