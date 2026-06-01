@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import mascotImg from "@/assets/mascot.png";
 
 interface ChatMessage {
   id: number;
@@ -30,37 +31,26 @@ function MascotWelcome() {
       <motion.div
         animate={{ y: [0, -15, 0] }}
         transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
-        className="w-40 h-40 mb-10 relative"
+        className="w-52 h-52 mb-8 relative flex items-center justify-center"
       >
         <div className="absolute inset-0 bg-primary/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute inset-[-20%] border border-primary/20 rounded-full animate-[spin_10s_linear_infinite]" />
-        <div className="absolute inset-[-40%] border border-cyan-400/10 rounded-full animate-[spin_15s_linear_infinite_reverse]" />
-        
-        <motion.div
-          animate={{ rotate: [-3, 3, -3] }}
-          transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-          className="w-full h-full relative z-10"
-        >
-          <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full drop-shadow-2xl">
-            <defs>
-              <linearGradient id="robotGrad" x1="0" y1="0" x2="100" y2="100">
-                <stop offset="0%" stopColor="hsl(var(--primary))" />
-                <stop offset="100%" stopColor="#06b6d4" />
-              </linearGradient>
-            </defs>
-            <rect x="20" y="30" width="60" height="45" rx="12" fill="url(#robotGrad)" />
-            <path d="M50 15V30" stroke="url(#robotGrad)" strokeWidth="4" strokeLinecap="round" />
-            <circle cx="50" cy="12" r="5" fill="#06b6d4" className="animate-pulse" />
-            <circle cx="35" cy="48" r="6" fill="white" className="animate-pulse" />
-            <circle cx="65" cy="48" r="6" fill="white" className="animate-pulse" />
-            <path d="M40 62C45 66 55 66 60 62" stroke="white" strokeWidth="3" strokeLinecap="round" />
-          </svg>
-        </motion.div>
+        <div className="absolute inset-[-10%] border border-primary/20 rounded-full animate-[spin_10s_linear_infinite]" />
+        <div className="absolute inset-[-30%] border border-cyan-400/10 rounded-full animate-[spin_15s_linear_infinite_reverse]" />
+
+        <img
+          src={mascotImg}
+          alt="Made Super AI agent"
+          className="w-full h-full object-contain relative z-10 drop-shadow-[0_12px_30px_rgba(76,29,149,0.45)]"
+          draggable={false}
+        />
       </motion.div>
-      
-      <h1 className="text-5xl font-display font-extrabold mb-6 tracking-tight gradient-text relative z-10">
+
+      <h1 className="text-5xl font-display font-extrabold mb-3 tracking-tight gradient-text relative z-10">
         MADE SUPER AI AGENT
       </h1>
+      <p className="text-base font-semibold text-primary mb-6 relative z-10 tracking-wide">
+        Ready to help.
+      </p>
       
       <div className="flex gap-4 mb-8 relative z-10 flex-wrap justify-center">
         <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-primary/10 to-transparent border border-primary/20 text-sm font-medium">
