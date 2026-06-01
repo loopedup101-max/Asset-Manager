@@ -575,7 +575,10 @@ export function ChatPage() {
           </Button>
         </div>
         <div className="text-center mt-4 text-xs font-medium text-muted-foreground uppercase tracking-widest">
-          Made Super AI — Powered by GPT. Verify critical info.
+          Made Super AI — Powered by GPT
+        </div>
+        <div className="text-center mt-1 text-[10px] font-normal text-muted-foreground/70 normal-case tracking-normal">
+          Made Super AI can make mistakes. Please double-check important information.
         </div>
       </div>
     </div>
