@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { usePaidAction } from "@/hooks/usePaidAction";
+import { useSearch } from "wouter";
 import { renderVideo, type RenderScene } from "@/lib/videoRenderer";
 import {
   Clapperboard, Sparkles, Wand2, Download, Loader2, Upload, Trash2,
@@ -96,10 +97,11 @@ function FilmStrip({ active }: { active?: boolean }) {
 
 export function StudioPage() {
   const { toast } = useToast();
-  const { requirePlan } = usePaidAction();
+  const { requirePlan, entitled } = usePaidAction();
+  const studioSearch = useSearch();
 
   // ---- AI Video Maker state ----
-  const [topic, setTopic] = useState("");
+  const [topic, setTopic] = useState(() => new URLSearchParams(studioSearch).get("topic") || "");
   const [style, setStyle] = useState(STYLES[0]);
   const [aspect, setAspect] = useState<"16:9" | "9:16">("16:9");
   const [voice, setVoice] = useState("nova");
@@ -297,6 +299,7 @@ export function StudioPage() {
       }));
       const blob = await renderVideo(renderScenes, {
         aspectRatio: aspect,
+        watermark: !entitled,
         onProgress: (f, label) => {
           setRenderProgress(Math.round(f * 100));
           setRenderLabel(label);
@@ -304,7 +307,12 @@ export function StudioPage() {
       });
       const url = URL.createObjectURL(blob);
       setResultUrl(url);
-      toast({ title: "Video rendered!", description: "Preview it below and download." });
+      toast({
+        title: "Video rendered!",
+        description: entitled
+          ? "Preview it below and download."
+          : "Free videos include a MadeTV watermark — upgrade to remove it.",
+      });
     } catch (e) {
       toast({ title: "Render failed", description: e instanceof Error ? e.message : "Try again", variant: "destructive" });
     } finally {

@@ -129,6 +129,7 @@ function MascotWelcome() {
 }
 
 function MessageContent({ content, role }: { content: string; role: "user" | "assistant" }) {
+  const [, navigate] = useLocation();
   if (role === "user") {
     return <span className="whitespace-pre-wrap leading-relaxed">{content}</span>;
   }
@@ -144,7 +145,34 @@ function MessageContent({ content, role }: { content: string; role: "user" | "as
       prose-blockquote:border-l-4 prose-blockquote:border-primary/40 prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-muted-foreground
       prose-a:text-primary prose-a:underline
       prose-hr:border-border">
-      <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        components={{
+          a: ({ href, children, ...props }) => {
+            if (href && href.startsWith("/")) {
+              return (
+                <a
+                  href={href}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigate(href);
+                  }}
+                  className="not-prose inline-flex items-center gap-1.5 my-1 px-3.5 py-2 rounded-xl bg-gradient-to-r from-primary to-blue-600 text-white text-sm font-semibold no-underline shadow-md hover:scale-[1.03] transition-transform cursor-pointer"
+                >
+                  {children}
+                </a>
+              );
+            }
+            return (
+              <a href={href} target="_blank" rel="noreferrer" {...props}>
+                {children}
+              </a>
+            );
+          },
+        }}
+      >
+        {content}
+      </ReactMarkdown>
     </div>
   );
 }
@@ -244,16 +272,21 @@ export function ChatPage() {
         const decoder = new TextDecoder();
         let assistantContent = "";
         let assistantMsgId: number | null = null;
+        let buffer = "";
 
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
 
-          const chunk = decoder.decode(value, { stream: true });
-          const lines = chunk.split("\n");
+          buffer += decoder.decode(value, { stream: true });
+          // SSE frames are separated by a blank line. Keep the last,
+          // possibly-incomplete frame in the buffer until more data arrives.
+          const frames = buffer.split("\n\n");
+          buffer = frames.pop() ?? "";
 
-          for (const line of lines) {
-            if (!line.startsWith("data: ")) continue;
+          for (const frame of frames) {
+            const line = frame.split("\n").find(l => l.startsWith("data: "));
+            if (!line) continue;
             try {
               const event = JSON.parse(line.slice(6));
 

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useSearch } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
@@ -37,9 +38,18 @@ export function BuilderPage() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
+  const builderSearch = useSearch();
+
   useEffect(() => {
     document.title = "App Builder — Made Super AI";
     return () => abortRef.current?.abort();
+  }, []);
+
+  useEffect(() => {
+    const p = new URLSearchParams(builderSearch).get("prompt");
+    if (p) setPrompt(p);
+    // prefill once from the agent's deep link
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const build = async (instruction: string, iterate: boolean) => {

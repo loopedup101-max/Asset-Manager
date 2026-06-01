@@ -11,6 +11,48 @@ export interface RenderOptions {
   aspectRatio: "16:9" | "9:16";
   onProgress?: (fraction: number, label: string) => void;
   accentColor?: string;
+  /** When true, burns a persistent "MadeTV" watermark into every frame. */
+  watermark?: boolean;
+}
+
+function drawWatermark(ctx: CanvasRenderingContext2D, W: number, H: number, accent: string) {
+  ctx.save();
+  const fontSize = Math.round(W * 0.026);
+  ctx.font = `800 ${fontSize}px Inter, system-ui, sans-serif`;
+  ctx.textBaseline = "middle";
+  ctx.textAlign = "left";
+
+  const label1 = "Made";
+  const label2 = "TV";
+  const w1 = ctx.measureText(label1).width;
+  const w2 = ctx.measureText(label2).width;
+  const padX = fontSize * 0.7;
+  const padY = fontSize * 0.55;
+  const gap = fontSize * 0.18;
+  const boxW = w1 + w2 + gap + padX * 2;
+  const boxH = fontSize + padY * 2;
+  const margin = Math.round(W * 0.025);
+  const x = W - boxW - margin;
+  const y = H - boxH - margin;
+
+  // pill background
+  ctx.globalAlpha = 0.6;
+  ctx.fillStyle = "rgba(8,12,28,0.65)";
+  roundRect(ctx, x, y, boxW, boxH, boxH / 2);
+  ctx.fill();
+  ctx.lineWidth = Math.max(1, fontSize * 0.06);
+  ctx.strokeStyle = accent;
+  ctx.globalAlpha = 0.85;
+  ctx.stroke();
+
+  // text
+  const ty = y + boxH / 2 + 1;
+  ctx.globalAlpha = 0.95;
+  ctx.fillStyle = "#ffffff";
+  ctx.fillText(label1, x + padX, ty);
+  ctx.fillStyle = accent;
+  ctx.fillText(label2, x + padX + w1 + gap, ty);
+  ctx.restore();
 }
 
 function loadImage(src: string): Promise<HTMLImageElement> {
@@ -303,6 +345,8 @@ export async function renderVideo(scenes: RenderScene[], opts: RenderOptions): P
         }
 
         ctx.globalAlpha = 1;
+
+        if (opts.watermark) drawWatermark(ctx, W, H, accent);
 
         const globalFraction = (elapsedBefore + t) / totalDuration;
         opts.onProgress?.(0.3 + globalFraction * 0.65, `Rendering scene ${i + 1} of ${loaded.length}...`);

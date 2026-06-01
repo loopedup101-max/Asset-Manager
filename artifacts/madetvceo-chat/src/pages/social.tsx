@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearch } from "wouter";
 import { format } from "date-fns";
 import { Sidebar } from "@/components/chat/sidebar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -285,6 +286,17 @@ function CreateContentTab() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const { requirePlan } = usePaidAction();
+  const socialSearch = useSearch();
+
+  useEffect(() => {
+    const params = new URLSearchParams(socialSearch);
+    const t = params.get("topic");
+    const p = params.get("platform");
+    if (t) setTopic(t);
+    if (p) setPlatform(p);
+    // prefill once from the agent's deep link
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleGenerate = () => {
     if (!topic) return;

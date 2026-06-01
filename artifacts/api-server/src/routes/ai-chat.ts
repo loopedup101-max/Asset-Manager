@@ -98,7 +98,21 @@ RULES:
 - For coding/tech: give working code examples with explanations
 - For everything else: be conversational, smart, and entertaining
 - Keep responses appropriately sized — concise for simple questions, thorough for complex ones
-- The joke accompanies the answer, never replaces it`;
+- The joke accompanies the answer, never replaces it
+
+WEB RESEARCH — YOU CAN ACTUALLY SEARCH THE INTERNET:
+- You have a real, built-in web search tool. When a question needs current, factual, or source-based information — news, prices, recent releases, documentation, examples, references, anything you need to "find from any source to build" — actually search the web and use what you find.
+- Use it whenever the user asks you to look something up, find resources/assets/APIs/examples, research a topic, or whenever your own knowledge might be stale. Don't guess when you can check.
+- When you use web results, weave the facts into your answer naturally and include the source link(s) so the user can verify. Never fabricate a source or a URL.
+- If a search returns nothing useful, say so honestly rather than inventing an answer.
+
+LAUNCHING THE TOOLS FOR THE USER (ACTION LINKS):
+- You can open any built-in tool for the user with everything pre-filled, using a special markdown link. When the user wants to make a video, build an app, or create social content, briefly help in chat AND end your reply with the matching action link so they can launch it in one click:
+  - Video Studio: [▶ Open Video Studio](/studio?topic=URL_ENCODED_TOPIC)
+  - App Builder: [▶ Open App Builder](/builder?prompt=URL_ENCODED_PROMPT)
+  - Social Hub: [▶ Open Social Hub](/social?topic=URL_ENCODED_TOPIC&platform=twitter)
+- Always URL-encode the value (spaces as %20). Put the user's actual topic/idea into the query so the tool opens ready to go. Example: [▶ Open Video Studio](/studio?topic=behind%20the%20scenes%20of%20a%20coffee%20shop).
+- Use these links only for real requests to use those tools — not in every message.`;
 
 router.post("/conversations/:id/messages/stream", async (req, res): Promise<void> => {
   const params = SendMessageParams.safeParse(req.params);
@@ -160,8 +174,7 @@ router.post("/conversations/:id/messages/stream", async (req, res): Promise<void
     .values({ conversationId: params.data.id, role: "user", content: parsed.data.content })
     .returning();
 
-  const chatMessages: { role: "system" | "user" | "assistant"; content: string }[] = [
-    { role: "system", content: SYSTEM_PROMPT },
+  const conversationInput: { role: "user" | "assistant"; content: string }[] = [
     ...history.map(m => ({ role: m.role as "user" | "assistant", content: m.content })),
     { role: "user", content: parsed.data.content },
   ];
@@ -177,18 +190,19 @@ router.post("/conversations/:id/messages/stream", async (req, res): Promise<void
   let fullResponse = "";
 
   try {
-    const stream = await openai.chat.completions.create({
+    const stream = await openai.responses.create({
       model: "gpt-5.1",
-      max_completion_tokens: 8192,
-      messages: chatMessages,
+      instructions: SYSTEM_PROMPT,
+      input: conversationInput,
+      tools: [{ type: "web_search" }],
+      max_output_tokens: 8192,
       stream: true,
     });
 
-    for await (const chunk of stream) {
-      const content = chunk.choices[0]?.delta?.content;
-      if (content) {
-        fullResponse += content;
-        res.write(`data: ${JSON.stringify({ type: "delta", content })}\n\n`);
+    for await (const event of stream) {
+      if (event.type === "response.output_text.delta" && event.delta) {
+        fullResponse += event.delta;
+        res.write(`data: ${JSON.stringify({ type: "delta", content: event.delta })}\n\n`);
       }
     }
   } catch (err) {
