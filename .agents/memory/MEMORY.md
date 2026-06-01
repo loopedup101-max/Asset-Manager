@@ -1,1 +1,2 @@
 - [stripe-replit-sync init gotchas](stripe-replit-sync.md) — esbuild must keep it external (else migrations silently skip → 0 tables); syncBackfill needs `{object:"all"}` or it syncs nothing.
+- [Made Super AI monetization](madesuper-monetization.md) — free chat trial then pay; all other tools paid; plans = depleting credits with upgrade nudges (user-confirmed, do not reintroduce free credits).

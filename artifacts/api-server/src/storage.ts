@@ -15,7 +15,7 @@ export const BASIC_MONTHLY_LIMIT = 100;
  * These are NOT "credits" (credits come with a plan) — just a small free trial
  * of the chat that prompts an upgrade once exhausted.
  */
-export const FREE_MONTHLY_LIMIT = 10;
+export const FREE_MONTHLY_LIMIT = 5;
 
 /** Current usage period as "YYYY-MM" (UTC). Usage resets each calendar month. */
 function currentPeriod(): string {

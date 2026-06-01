@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useParams } from "wouter";
-import { useGetConversation, useListMessages, getListMessagesQueryKey, getListConversationsQueryKey, getGetConversationQueryKey } from "@workspace/api-client-react";
+import { useParams, useLocation, Link } from "wouter";
+import { useGetConversation, useListMessages, useCreateConversation, getListMessagesQueryKey, getListConversationsQueryKey, getGetConversationQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Sidebar } from "@/components/chat/sidebar";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import mascotImg from "@/assets/mascot.png";
+import { useMe } from "@/hooks/useMe";
 
 interface ChatMessage {
   id: number;
@@ -148,15 +149,30 @@ function MessageContent({ content, role }: { content: string; role: "user" | "as
   );
 }
 
+// Carries the first message across the navigation from the welcome screen to the
+// freshly-created conversation route, so "Ask Me Anything" sends from home.
+let pendingFirstMessage: { convId: number; content: string } | null = null;
+
 export function ChatPage() {
   const { id } = useParams();
   const convId = id ? parseInt(id) : null;
   const [content, setContent] = useState("");
   const [streamingMessages, setStreamingMessages] = useState<ChatMessage[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [creatingChat, setCreatingChat] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
   const abortRef = useRef<AbortController | null>(null);
+  const [, setLocation] = useLocation();
+  const createConversation = useCreateConversation();
+  const { data: me } = useMe();
+
+  const usage = me?.usage;
+  const unlimited = usage?.unlimited ?? false;
+  const remaining = !unlimited && usage ? usage.remaining : null;
+  const isFreeTier = me?.tier === "free";
+  const outOfFree = isFreeTier && remaining === 0;
+  const showUsageNudge = !unlimited && remaining !== null && remaining <= 2;
 
   const { data: conversation } = useGetConversation(convId!, { query: { enabled: !!convId, queryKey: getGetConversationQueryKey(convId!) } });
   const { data: dbMessages, isLoading: messagesLoading } = useListMessages(convId!, { query: { enabled: !!convId, queryKey: getListMessagesQueryKey(convId!) } });
@@ -179,118 +195,162 @@ export function ChatPage() {
     }
   }, [dbMessages]);
 
-  const handleSend = useCallback(async () => {
-    if (!content.trim() || !convId || isStreaming) return;
+  const sendMessage = useCallback(
+    async (text: string, targetConvId: number) => {
+      setIsStreaming(true);
+      abortRef.current = new AbortController();
 
-    const messageContent = content.trim();
-    setContent("");
-    setIsStreaming(true);
-
-    abortRef.current = new AbortController();
-
-    try {
-      const response = await fetch(`/api/conversations/${convId}/messages/stream`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: messageContent }),
-        signal: abortRef.current.signal,
-      });
-
-      if (!response.ok || !response.body) {
-        let msg = "Something went wrong. Please try again.";
-        try {
-          const err = await response.json();
-          if (err?.error) msg = err.error;
-        } catch {
-          /* non-JSON error body */
-        }
-        const note =
-          response.status === 402
-            ? `⚠️ ${msg}\n\nOpen **Pricing** from the sidebar to upgrade your plan.`
-            : msg;
-        setStreamingMessages((prev) => [
-          ...prev,
+      try {
+        const response = await fetch(
+          `/api/conversations/${targetConvId}/messages/stream`,
           {
-            id: Date.now(),
-            conversationId: convId,
-            role: "assistant" as const,
-            content: note,
-            createdAt: new Date().toISOString(),
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ content: text }),
+            signal: abortRef.current.signal,
           },
-        ]);
-        setIsStreaming(false);
-        return;
-      }
+        );
 
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let assistantContent = "";
-      let assistantMsgId: number | null = null;
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const text = decoder.decode(value, { stream: true });
-        const lines = text.split("\n");
-
-        for (const line of lines) {
-          if (!line.startsWith("data: ")) continue;
+        if (!response.ok || !response.body) {
+          let msg = "Something went wrong. Please try again.";
           try {
-            const event = JSON.parse(line.slice(6));
+            const err = await response.json();
+            if (err?.error) msg = err.error;
+          } catch {
+            /* non-JSON error body */
+          }
+          const note =
+            response.status === 402
+              ? `⚠️ ${msg}\n\nOpen **Pricing** from the sidebar to choose a plan.`
+              : msg;
+          setStreamingMessages((prev) => [
+            ...prev,
+            {
+              id: Date.now(),
+              conversationId: targetConvId,
+              role: "assistant" as const,
+              content: note,
+              createdAt: new Date().toISOString(),
+            },
+          ]);
+          setIsStreaming(false);
+          if (response.status === 402) {
+            queryClient.invalidateQueries({ queryKey: ["me"] });
+          }
+          return;
+        }
 
-            if (event.type === "user_message") {
-              setStreamingMessages(prev => [...prev, { ...event.message, role: "user" as const }]);
-            } else if (event.type === "delta") {
-              assistantContent += event.content;
-              if (assistantMsgId === null) {
-                const tempId = Date.now();
-                assistantMsgId = tempId;
-                setStreamingMessages(prev => [
-                  ...prev,
-                  {
-                    id: tempId,
-                    conversationId: convId,
-                    role: "assistant" as const,
-                    content: assistantContent,
-                    createdAt: new Date().toISOString(),
-                    streaming: true,
-                  },
-                ]);
-              } else {
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let assistantContent = "";
+        let assistantMsgId: number | null = null;
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split("\n");
+
+          for (const line of lines) {
+            if (!line.startsWith("data: ")) continue;
+            try {
+              const event = JSON.parse(line.slice(6));
+
+              if (event.type === "user_message") {
+                setStreamingMessages(prev => [...prev, { ...event.message, role: "user" as const }]);
+              } else if (event.type === "delta") {
+                assistantContent += event.content;
+                if (assistantMsgId === null) {
+                  const tempId = Date.now();
+                  assistantMsgId = tempId;
+                  setStreamingMessages(prev => [
+                    ...prev,
+                    {
+                      id: tempId,
+                      conversationId: targetConvId,
+                      role: "assistant" as const,
+                      content: assistantContent,
+                      createdAt: new Date().toISOString(),
+                      streaming: true,
+                    },
+                  ]);
+                } else {
+                  setStreamingMessages(prev =>
+                    prev.map(m =>
+                      m.id === assistantMsgId
+                        ? { ...m, content: assistantContent, streaming: true }
+                        : m
+                    )
+                  );
+                }
+                scrollToBottom();
+              } else if (event.type === "done") {
                 setStreamingMessages(prev =>
                   prev.map(m =>
                     m.id === assistantMsgId
-                      ? { ...m, content: assistantContent, streaming: true }
+                      ? { ...event.message, role: "assistant" as const, streaming: false }
                       : m
                   )
                 );
+                queryClient.invalidateQueries({ queryKey: getListConversationsQueryKey() });
+                queryClient.invalidateQueries({ queryKey: getListMessagesQueryKey(targetConvId) });
+                queryClient.invalidateQueries({ queryKey: ["me"] });
               }
-              scrollToBottom();
-            } else if (event.type === "done") {
-              setStreamingMessages(prev =>
-                prev.map(m =>
-                  m.id === assistantMsgId
-                    ? { ...event.message, role: "assistant" as const, streaming: false }
-                    : m
-                )
-              );
-              queryClient.invalidateQueries({ queryKey: getListConversationsQueryKey() });
-              queryClient.invalidateQueries({ queryKey: getListMessagesQueryKey(convId) });
+            } catch {
+              // skip malformed SSE lines
             }
-          } catch {
-            // skip malformed SSE lines
           }
         }
+      } catch (err: unknown) {
+        if (err instanceof Error && err.name !== "AbortError") {
+          console.error("Streaming error", err);
+        }
+      } finally {
+        setIsStreaming(false);
       }
-    } catch (err: unknown) {
-      if (err instanceof Error && err.name !== "AbortError") {
-        console.error("Streaming error", err);
-      }
-    } finally {
-      setIsStreaming(false);
+    },
+    [queryClient, scrollToBottom],
+  );
+
+  const handleSend = useCallback(() => {
+    const text = content.trim();
+    if (!text || !convId || isStreaming) return;
+    setContent("");
+    void sendMessage(text, convId);
+  }, [content, convId, isStreaming, sendMessage]);
+
+  // From the welcome screen: create a conversation, then auto-send the first
+  // message once we land on the new /c/:id route.
+  const handleWelcomeSend = useCallback(async () => {
+    const text = content.trim();
+    if (!text || creatingChat || isStreaming) return;
+    if (outOfFree) {
+      setLocation("/pricing");
+      return;
     }
-  }, [content, convId, isStreaming, queryClient, scrollToBottom]);
+    setCreatingChat(true);
+    try {
+      const created = await createConversation.mutateAsync({
+        data: { title: text.slice(0, 40) || "New Conversation" },
+      });
+      pendingFirstMessage = { convId: created.id, content: text };
+      setContent("");
+      queryClient.invalidateQueries({ queryKey: getListConversationsQueryKey() });
+      setLocation(`/c/${created.id}`);
+    } catch (err) {
+      console.error("Could not start chat", err);
+      setCreatingChat(false);
+    }
+  }, [content, creatingChat, isStreaming, outOfFree, createConversation, queryClient, setLocation]);
+
+  useEffect(() => {
+    if (convId && pendingFirstMessage && pendingFirstMessage.convId === convId) {
+      const text = pendingFirstMessage.content;
+      pendingFirstMessage = null;
+      void sendMessage(text, convId);
+    }
+  }, [convId, sendMessage]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -301,12 +361,60 @@ export function ChatPage() {
 
   if (!convId) {
     return (
-      <div className="flex-1 flex flex-col relative h-full">
-        <div className="md:hidden p-4 border-b flex items-center bg-sidebar text-white">
+      <div className="flex-1 flex flex-col relative h-full bg-[#070711]">
+        <div className="md:hidden p-4 border-b border-white/10 flex items-center bg-sidebar text-white">
           <Sidebar isMobile />
           <span className="ml-4 font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-primary/80">Made Super AI</span>
         </div>
         <MascotWelcome />
+        <div className="shrink-0 px-4 md:px-6 pb-6 pt-2 relative z-10">
+          <div className="max-w-3xl mx-auto">
+            {outOfFree ? (
+              <Link href="/pricing">
+                <div className="flex items-center justify-center gap-2.5 rounded-2xl border border-primary/40 bg-gradient-to-r from-primary/25 to-cyan-400/10 px-5 py-4 cursor-pointer hover:from-primary/35 transition-all text-center">
+                  <Sparkles className="w-5 h-5 text-cyan-300 shrink-0" />
+                  <span className="text-sm md:text-base font-semibold text-white">
+                    You've used your free questions — get a plan to keep chatting & unlock every tool
+                  </span>
+                </div>
+              </Link>
+            ) : (
+              <>
+                {isFreeTier && remaining !== null && (
+                  <div className="mb-2 text-center text-xs font-medium text-cyan-300/80">
+                    {remaining} free {remaining === 1 ? "question" : "questions"} left ·{" "}
+                    <Link href="/pricing">
+                      <span className="underline cursor-pointer hover:text-cyan-200">Get a plan</span>
+                    </Link>{" "}
+                    for credits & all tools
+                  </div>
+                )}
+                <div className="relative flex items-end shadow-[0_0_30px_rgba(124,58,237,0.25)] border border-white/15 rounded-2xl bg-white/[0.04] backdrop-blur-md overflow-hidden focus-within:border-primary/50 transition-all">
+                  <Textarea
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        handleWelcomeSend();
+                      }
+                    }}
+                    placeholder="Ask me anything — code, ideas, your next big project..."
+                    className="min-h-[60px] max-h-48 resize-none border-0 focus-visible:ring-0 rounded-none shadow-none py-5 px-5 text-base font-medium bg-transparent text-white placeholder:text-white/40"
+                  />
+                  <Button
+                    size="icon"
+                    onClick={handleWelcomeSend}
+                    disabled={!content.trim() || creatingChat}
+                    className="mb-3 mr-3 shrink-0 h-12 w-12 rounded-xl shadow-lg bg-gradient-to-r from-primary to-blue-600 hover:scale-105 transition-all border-0 disabled:opacity-50 disabled:hover:scale-100"
+                  >
+                    {creatingChat ? <Loader2 className="w-5 h-5 animate-spin" /> : <SendHorizontal className="w-6 h-6" />}
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
       </div>
     );
   }
@@ -400,6 +508,22 @@ export function ChatPage() {
       </div>
 
       <div className="p-6 bg-white/80 backdrop-blur-xl border-t shrink-0 relative z-20">
+        {showUsageNudge && (
+          <div className="max-w-4xl mx-auto mb-3">
+            <Link href="/pricing">
+              <div className="flex items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-4 py-2.5 cursor-pointer hover:bg-primary/10 transition-all">
+                <Sparkles className="w-4 h-4 text-primary shrink-0" />
+                <span className="text-sm font-semibold text-foreground">
+                  {remaining === 0
+                    ? isFreeTier
+                      ? "You're out of free questions — get a plan to keep going"
+                      : "You're out of credits — upgrade for more"
+                    : `Only ${remaining} ${remaining === 1 ? "message" : "messages"} left — ${isFreeTier ? "get a plan" : "upgrade"} for more`}
+                </span>
+              </div>
+            </Link>
+          </div>
+        )}
         <div className="max-w-4xl mx-auto relative flex items-end shadow-md border border-border rounded-2xl bg-white overflow-hidden focus-within:glow-ring transition-all duration-300">
           <Textarea
             value={content}

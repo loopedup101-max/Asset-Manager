@@ -30,7 +30,9 @@ export function Sidebar({ className, isMobile = false }: { className?: string, i
   const email = me?.user.email ?? "";
   const tier = me?.tier ?? null;
   const usage = me?.usage;
-  const showUsage = tier === "basic" && usage && !usage.unlimited;
+  const showUsage =
+    (tier === "free" || tier === "basic") && usage && !usage.unlimited;
+  const usageLabel = tier === "free" ? "Free trial" : "AI credits";
 
   const activeId = location.startsWith("/c/") ? parseInt(location.split("/")[2]) : null;
 
@@ -175,7 +177,7 @@ export function Sidebar({ className, isMobile = false }: { className?: string, i
           <div className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5">
             <div className="flex items-center justify-between text-[11px] mb-1.5">
               <span className="text-white/50 font-semibold uppercase tracking-wide">
-                AI usage
+                {usageLabel}
               </span>
               <span className="text-white/80 font-semibold">
                 {usage.used}/{usage.limit}
@@ -196,7 +198,8 @@ export function Sidebar({ className, isMobile = false }: { className?: string, i
             </div>
             <Link href="/pricing">
               <div className="mt-2 flex items-center justify-center gap-1.5 text-xs font-semibold text-cyan-300 hover:text-cyan-200 cursor-pointer transition-colors">
-                <Sparkles className="w-3.5 h-3.5" /> Upgrade for unlimited
+                <Sparkles className="w-3.5 h-3.5" />
+                {tier === "free" ? "Get a plan for more" : "Upgrade for unlimited"}
               </div>
             </Link>
           </div>
