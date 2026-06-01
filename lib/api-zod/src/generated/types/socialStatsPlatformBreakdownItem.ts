@@ -6,7 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface ConversationUpdate {
-  title?: string;
-  lastMessage?: string;
-}
+export type SocialStatsPlatformBreakdownItem = {
+  platform: string;
+  count: number;
+};

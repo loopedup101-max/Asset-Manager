@@ -1,5 +1,5 @@
 import { formatDistanceToNow } from "date-fns";
-import { Plus, MessageSquare, Settings, Trash2, Menu, Zap } from "lucide-react";
+import { Plus, MessageSquare, Settings, Trash2, Menu, Zap, Share2 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useListConversations, useCreateConversation, useDeleteConversation, getListConversationsQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -70,6 +70,23 @@ export function Sidebar({ className, isMobile = false }: { className?: string, i
           New Chat
         </Button>
       </div>
+
+      <div className="px-3 mb-4 space-y-1">
+        <Link href="/">
+          <div className={cn("flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-300 border border-transparent", (location === "/" || location.startsWith("/c/")) ? "bg-gradient-to-r from-primary/30 to-blue-600/10 text-white border-primary/30 shadow-[0_0_15px_rgba(91,33,182,0.2)]" : "hover:bg-white/5 text-white/70 border-white/5")}>
+            <MessageSquare className={cn("w-5 h-5 shrink-0", (location === "/" || location.startsWith("/c/")) ? "text-cyan-400" : "text-white/40")} />
+            <span className={cn("font-medium text-sm", (location === "/" || location.startsWith("/c/")) && "text-white font-semibold")}>Chat</span>
+          </div>
+        </Link>
+        <Link href="/social">
+          <div className={cn("flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-300 border border-transparent", location.startsWith("/social") ? "bg-gradient-to-r from-primary/30 to-blue-600/10 text-white border-primary/30 shadow-[0_0_15px_rgba(91,33,182,0.2)]" : "hover:bg-white/5 text-white/70 border-white/5")}>
+            <Share2 className={cn("w-5 h-5 shrink-0", location.startsWith("/social") ? "text-cyan-400" : "text-white/40")} />
+            <span className={cn("font-medium text-sm", location.startsWith("/social") && "text-white font-semibold")}>Social Hub</span>
+          </div>
+        </Link>
+      </div>
+
+      <div className="px-3 pb-2 text-xs font-semibold text-white/30 uppercase tracking-wider">Conversations</div>
 
       <div className="flex-1 overflow-y-auto px-3 space-y-2">
         {isLoading ? (

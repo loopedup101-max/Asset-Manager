@@ -1,9 +1,8 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: MadeTVCEO Chat API specification
+  description: Made Super AI Agent API specification
 servers:
   - url: /api
     description: Base API path
@@ -16,13 +15,14 @@ tags:
     description: Message operations
   - name: stats
     description: Statistics and summaries
+  - name: social
+    description: Social media management
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -162,7 +162,7 @@ paths:
               $ref: "#/components/schemas/MessageInput"
       responses:
         "201":
-          description: Message sent (both user and assistant reply)
+          description: Message sent with assistant reply
           content:
             application/json:
               schema:
@@ -183,6 +183,155 @@ paths:
               schema:
                 $ref: "#/components/schemas/StatsSummary"
 
+  /social/accounts:
+    get:
+      operationId: listSocialAccounts
+      tags: [social]
+      summary: List connected social accounts
+      responses:
+        "200":
+          description: Connected accounts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SocialAccount"
+    post:
+      operationId: connectSocialAccount
+      tags: [social]
+      summary: Connect a social media account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SocialAccountInput"
+      responses:
+        "201":
+          description: Account connected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SocialAccount"
+
+  /social/accounts/{id}:
+    delete:
+      operationId: disconnectSocialAccount
+      tags: [social]
+      summary: Disconnect a social account
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Disconnected
+
+  /social/posts:
+    get:
+      operationId: listSocialPosts
+      tags: [social]
+      summary: List social posts
+      responses:
+        "200":
+          description: Posts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SocialPost"
+    post:
+      operationId: createSocialPost
+      tags: [social]
+      summary: Create or schedule a social post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SocialPostInput"
+      responses:
+        "201":
+          description: Post created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SocialPost"
+
+  /social/posts/{id}:
+    patch:
+      operationId: updateSocialPost
+      tags: [social]
+      summary: Update a social post
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SocialPostUpdate"
+      responses:
+        "200":
+          description: Updated post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SocialPost"
+    delete:
+      operationId: deleteSocialPost
+      tags: [social]
+      summary: Delete a social post
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /social/generate:
+    post:
+      operationId: generateSocialContent
+      tags: [social]
+      summary: AI-generate post content or video script
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContentGenerateInput"
+      responses:
+        "200":
+          description: Generated content
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeneratedContent"
+
+  /social/stats:
+    get:
+      operationId: getSocialStats
+      tags: [social]
+      summary: Get social media stats overview
+      responses:
+        "200":
+          description: Social stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SocialStats"
+
 components:
   schemas:
     HealthStatus:
@@ -190,8 +339,7 @@ components:
       properties:
         status:
           type: string
-      required:
-        - status
+      required: [status]
 
     Conversation:
       type: object
@@ -223,7 +371,6 @@ components:
       properties:
         title:
           type: string
-          minLength: 1
         lastMessage:
           type: string
 
@@ -274,3 +421,145 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Conversation"
+
+    SocialAccount:
+      type: object
+      required: [id, platform, username, connected, createdAt]
+      properties:
+        id:
+          type: integer
+        platform:
+          type: string
+          enum: [twitter, youtube, instagram, tiktok, facebook, linkedin]
+        username:
+          type: string
+        connected:
+          type: boolean
+        apiKey:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    SocialAccountInput:
+      type: object
+      required: [platform, username]
+      properties:
+        platform:
+          type: string
+          enum: [twitter, youtube, instagram, tiktok, facebook, linkedin]
+        username:
+          type: string
+        apiKey:
+          type: string
+        apiSecret:
+          type: string
+        accessToken:
+          type: string
+
+    SocialPost:
+      type: object
+      required: [id, platform, content, status, createdAt]
+      properties:
+        id:
+          type: integer
+        platform:
+          type: string
+        content:
+          type: string
+        status:
+          type: string
+          enum: [draft, scheduled, published, failed]
+        scheduledAt:
+          type: ["string", "null"]
+        publishedAt:
+          type: ["string", "null"]
+        postType:
+          type: string
+          enum: [text, video, image]
+        videoScript:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    SocialPostInput:
+      type: object
+      required: [platform, content]
+      properties:
+        platform:
+          type: string
+        content:
+          type: string
+        status:
+          type: string
+          enum: [draft, scheduled]
+        scheduledAt:
+          type: string
+        postType:
+          type: string
+          enum: [text, video, image]
+        videoScript:
+          type: string
+
+    SocialPostUpdate:
+      type: object
+      properties:
+        content:
+          type: string
+        status:
+          type: string
+          enum: [draft, scheduled, published, failed]
+        scheduledAt:
+          type: string
+
+    ContentGenerateInput:
+      type: object
+      required: [topic, platform]
+      properties:
+        topic:
+          type: string
+        platform:
+          type: string
+        contentType:
+          type: string
+          enum: [post, video_script, caption, thread]
+        tone:
+          type: string
+          enum: [professional, casual, energetic, educational]
+
+    GeneratedContent:
+      type: object
+      required: [content, platform, contentType]
+      properties:
+        content:
+          type: string
+        platform:
+          type: string
+        contentType:
+          type: string
+        suggestions:
+          type: array
+          items:
+            type: string
+
+    SocialStats:
+      type: object
+      required: [totalPosts, scheduled, published, connectedAccounts]
+      properties:
+        totalPosts:
+          type: integer
+        scheduled:
+          type: integer
+        published:
+          type: integer
+        connectedAccounts:
+          type: integer
+        platformBreakdown:
+          type: array
+          items:
+            type: object
+            required: [platform, count]
+            properties:
+              platform:
+                type: string
+              count:
+                type: integer

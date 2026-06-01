@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
-import { useGetConversation, useListMessages, useSendMessage, getListMessagesQueryKey, getListConversationsQueryKey, useUpdateConversation } from "@workspace/api-client-react";
+import { useGetConversation, useListMessages, useSendMessage, getListMessagesQueryKey, getListConversationsQueryKey, useUpdateConversation, getGetConversationQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Sidebar } from "@/components/chat/sidebar";
 import { Button } from "@/components/ui/button";
@@ -77,8 +77,8 @@ export function ChatPage() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
 
-  const { data: conversation } = useGetConversation(convId!, { query: { enabled: !!convId } });
-  const { data: messages, isLoading: messagesLoading } = useListMessages(convId!, { query: { enabled: !!convId } });
+  const { data: conversation } = useGetConversation(convId!, { query: { enabled: !!convId, queryKey: getGetConversationQueryKey(convId!) } });
+  const { data: messages, isLoading: messagesLoading } = useListMessages(convId!, { query: { enabled: !!convId, queryKey: getListMessagesQueryKey(convId!) } });
   const sendMessage = useSendMessage();
   const updateConversation = useUpdateConversation();
 
