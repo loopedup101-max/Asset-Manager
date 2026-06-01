@@ -6,3 +6,27 @@ id = "tKNqRNsiNQPjH4HyRvAc9"
 uri = "file://artifacts/madetvceo-chat/src/assets/mascot.png"
 type = "image"
 title = "robot mascot"
+
+[[generated]]
+id = "r5FABultHzaX3M3qi758-"
+uri = "file://artifacts/madetvceo-chat/src/assets/features/chat.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "cFsNWJcF7YGg9oZtWk1iN"
+uri = "file://artifacts/madetvceo-chat/src/assets/features/builder.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "ykaSyzZ2Qs1V608wL5Cr7"
+uri = "file://artifacts/madetvceo-chat/src/assets/features/studio.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "w1IwIrIan-MxIGIh04JgU"
+uri = "file://artifacts/madetvceo-chat/src/assets/features/social.png"
+type = "image"
+title = "generated_image"

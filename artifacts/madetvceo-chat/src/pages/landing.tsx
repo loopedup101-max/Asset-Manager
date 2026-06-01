@@ -13,6 +13,11 @@ import {
   Zap,
 } from "lucide-react";
 import mascotImg from "@/assets/mascot.png";
+import chatImg from "@/assets/features/chat.png";
+import builderImg from "@/assets/features/builder.png";
+import studioImg from "@/assets/features/studio.png";
+import socialImg from "@/assets/features/social.png";
+import { PricingPlans } from "@/components/PricingPlans";
 
 const CAPABILITIES = [
   { icon: MessageSquare, label: "AI Agent Chat", desc: "Ask anything, get answers" },
@@ -21,6 +26,33 @@ const CAPABILITIES = [
   { icon: Share2, label: "Social Hub", desc: "Create & schedule posts" },
   { icon: Wrench, label: "System Tools", desc: "Automate the busywork" },
   { icon: Cpu, label: "Autonomous", desc: "It builds, ships, and runs" },
+];
+
+const SHOWCASE = [
+  {
+    img: chatImg,
+    icon: MessageSquare,
+    title: "AI Agent Chat",
+    desc: "Ask anything and get instant, intelligent answers — your always-on AI assistant.",
+  },
+  {
+    img: builderImg,
+    icon: Blocks,
+    title: "App Builder",
+    desc: "Describe what you want and watch it build working apps from a single prompt.",
+  },
+  {
+    img: studioImg,
+    icon: Clapperboard,
+    title: "Video Studio",
+    desc: "Generate scroll-stopping videos with AI narration, on demand.",
+  },
+  {
+    img: socialImg,
+    icon: Share2,
+    title: "Social Hub",
+    desc: "Create, schedule, and publish social content across every platform.",
+  },
 ];
 
 export function LandingPage() {
@@ -135,18 +167,64 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* pricing CTA */}
-      <section className="relative z-10 max-w-3xl mx-auto px-5 pb-24 text-center">
-        <div className="rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-10">
+      {/* product showcase */}
+      <section className="relative z-10 max-w-6xl mx-auto px-5 pb-20">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-display font-extrabold tracking-tight bg-gradient-to-r from-white to-cyan-200 bg-clip-text text-transparent mb-3">
+            One agent. Every tool.
+          </h2>
+          <p className="text-slate-400 max-w-lg mx-auto">
+            See what your AI super agent can build, create, and run for you.
+          </p>
+        </div>
+        <div className="grid sm:grid-cols-2 gap-5 md:gap-6">
+          {SHOWCASE.map((s, i) => (
+            <motion.div
+              key={s.title}
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-80px" }}
+              transition={{ delay: i * 0.08 }}
+              className="group overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur-sm hover:border-primary/40 transition-all"
+            >
+              <div className="relative aspect-[4/3] overflow-hidden">
+                <img
+                  src={s.img}
+                  alt={s.title}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  draggable={false}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#070711] via-[#070711]/30 to-transparent" />
+              </div>
+              <div className="p-6">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 shrink-0 rounded-xl bg-gradient-to-br from-primary/30 to-cyan-400/20 border border-white/10 flex items-center justify-center">
+                    <s.icon className="w-5 h-5 text-cyan-300" />
+                  </div>
+                  <h3 className="text-lg font-display font-bold text-white">{s.title}</h3>
+                </div>
+                <p className="text-sm text-slate-400">{s.desc}</p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* pricing */}
+      <section className="relative z-10 max-w-6xl mx-auto px-5 pb-24">
+        <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-display font-extrabold tracking-tight bg-gradient-to-r from-white to-cyan-200 bg-clip-text text-transparent mb-3">
             Simple, premium pricing
           </h2>
-          <p className="text-slate-400 max-w-lg mx-auto mb-8">
+          <p className="text-slate-400 max-w-lg mx-auto">
             Unlock the full agent and every tool. Cancel anytime.
           </p>
+        </div>
+        <PricingPlans />
+        <div className="text-center mt-10">
           <Link href="/pricing">
-            <span className="inline-flex items-center gap-2 h-12 px-7 rounded-xl font-semibold bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-500 text-white shadow-[0_0_20px_rgba(91,33,182,0.5)] transition-all cursor-pointer">
-              <Sparkles className="w-4 h-4" /> View pricing &amp; plans
+            <span className="inline-flex items-center gap-2 h-12 px-7 rounded-xl font-semibold border border-white/15 bg-white/5 hover:bg-white/10 text-white transition-all cursor-pointer">
+              <Sparkles className="w-4 h-4" /> Compare all plans
             </span>
           </Link>
         </div>
