@@ -199,12 +199,8 @@ export class Storage {
       return existing;
     }
 
-    // First registered user becomes the owner (free, never gated).
-    const [{ count }] = await db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(usersTable);
-    const isFirstUser = Number(count) === 0;
-    const role = isFirstUser || isOwnerEmail(email) ? "owner" : "user";
+    // Only configured/hardcoded owner emails get free, unlimited access.
+    const role = isOwnerEmail(email) ? "owner" : "user";
 
     const [created] = await db
       .insert(usersTable)
