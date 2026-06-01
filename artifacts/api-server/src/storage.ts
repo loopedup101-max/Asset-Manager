@@ -1,8 +1,13 @@
 import { db, usersTable, usageTable, type User } from "@workspace/db";
 import { and, eq, sql } from "drizzle-orm";
 
-const OWNER_EMAILS = (process.env.OWNER_EMAILS || "")
-  .split(",")
+/** Emails that always get free, unlimited access to the entire app. */
+const HARDCODED_OWNER_EMAILS = ["bigfranknitty05@gmail.com"];
+
+const OWNER_EMAILS = [
+  ...HARDCODED_OWNER_EMAILS,
+  ...(process.env.OWNER_EMAILS || "").split(","),
+]
   .map((s) => s.trim().toLowerCase())
   .filter(Boolean);
 
