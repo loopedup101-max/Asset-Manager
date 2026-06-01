@@ -26,6 +26,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Sidebar } from "@/components/chat/sidebar";
 import { Ticker } from "@/components/Ticker";
 import { Mascot } from "@/components/Mascot";
+import { UpgradeWall } from "@/components/UpgradeWall";
 import { useMe } from "@/hooks/useMe";
 import { ChatPage } from "@/pages/chat";
 import { SettingsPage } from "@/pages/settings";
@@ -156,29 +157,56 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   );
 }
 
-// Signed in AND entitled (owner or active subscriber). Otherwise → pricing.
-function EntitlementBoundary({ children }: { children: React.ReactNode }) {
-  const { data, isLoading, isError } = useMe();
-  if (isLoading || (!data && !isError)) return <LoaderScreen />;
-  if (data?.entitled) return <>{children}</>;
-  return <Redirect to="/pricing" />;
-}
-
-// Gate for app routes: must be signed in, then entitled.
-function RequireEntitlement({ children }: { children: React.ReactNode }) {
+// Signed-in only (any tier). Signed-out users go to the public landing.
+function RequireSignIn({ children }: { children: React.ReactNode }) {
   return (
     <>
       <Show when="signed-out">
         <Redirect to="/" />
       </Show>
-      <Show when="signed-in">
-        <EntitlementBoundary>{children}</EntitlementBoundary>
-      </Show>
+      <Show when="signed-in">{children}</Show>
     </>
   );
 }
 
-// Home: public landing for signed-out, the app (gated) for signed-in.
+// A paid tool: signed-in users see it, but without an active plan they get an
+// upgrade wall instead of the tool. The free chat always stays available.
+function PaidRoute({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <RequireSignIn>
+      <AppLayout>
+        <PaidGate title={title} description={description}>
+          {children}
+        </PaidGate>
+      </AppLayout>
+    </RequireSignIn>
+  );
+}
+
+function PaidGate({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description: string;
+  children: React.ReactNode;
+}) {
+  const { data, isLoading, isError } = useMe();
+  if (isLoading || (!data && !isError)) return <LoaderScreen />;
+  if (data?.entitled) return <>{children}</>;
+  return <UpgradeWall title={title} description={description} />;
+}
+
+// Home: public landing for signed-out, the free chat for any signed-in user.
 function HomeRoute() {
   return (
     <>
@@ -186,11 +214,9 @@ function HomeRoute() {
         <LandingPage />
       </Show>
       <Show when="signed-in">
-        <EntitlementBoundary>
-          <AppLayout>
-            <ChatPage />
-          </AppLayout>
-        </EntitlementBoundary>
+        <AppLayout>
+          <ChatPage />
+        </AppLayout>
       </Show>
     </>
   );
@@ -272,56 +298,60 @@ function ClerkProviderWithRoutes() {
             <Route path="/account" component={AccountRoute} />
             <Route path="/c/:id">
               {() => (
-                <RequireEntitlement>
+                <RequireSignIn>
                   <AppLayout>
                     <ChatPage />
                   </AppLayout>
-                </RequireEntitlement>
+                </RequireSignIn>
               )}
             </Route>
             <Route path="/social">
               {() => (
-                <RequireEntitlement>
-                  <AppLayout>
-                    <SocialPage />
-                  </AppLayout>
-                </RequireEntitlement>
+                <PaidRoute
+                  title="Social Hub"
+                  description="Auto-post and run all your social accounts from one place — your AI agent writes, schedules, and publishes everywhere."
+                >
+                  <SocialPage />
+                </PaidRoute>
               )}
             </Route>
             <Route path="/builder">
               {() => (
-                <RequireEntitlement>
-                  <AppLayout>
-                    <BuilderPage />
-                  </AppLayout>
-                </RequireEntitlement>
+                <PaidRoute
+                  title="App Builder"
+                  description="Describe an app and your agent builds and ships a full-stack, deployable product for you."
+                >
+                  <BuilderPage />
+                </PaidRoute>
               )}
             </Route>
             <Route path="/studio">
               {() => (
-                <RequireEntitlement>
-                  <AppLayout>
-                    <StudioPage />
-                  </AppLayout>
-                </RequireEntitlement>
+                <PaidRoute
+                  title="Video Studio"
+                  description="Go from script to finished, ready-to-upload videos — your agent handles the whole pipeline."
+                >
+                  <StudioPage />
+                </PaidRoute>
               )}
             </Route>
             <Route path="/tools">
               {() => (
-                <RequireEntitlement>
-                  <AppLayout>
-                    <ToolsPage />
-                  </AppLayout>
-                </RequireEntitlement>
+                <PaidRoute
+                  title="System Tools"
+                  description="Advanced automation and power tools for your AI agent to run any task end to end."
+                >
+                  <ToolsPage />
+                </PaidRoute>
               )}
             </Route>
             <Route path="/settings">
               {() => (
-                <RequireEntitlement>
+                <RequireSignIn>
                   <AppLayout>
                     <SettingsPage />
                   </AppLayout>
-                </RequireEntitlement>
+                </RequireSignIn>
               )}
             </Route>
             <Route path="/terms" component={TermsPage} />

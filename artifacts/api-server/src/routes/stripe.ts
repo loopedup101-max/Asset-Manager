@@ -3,7 +3,7 @@ import {
   storage,
   isOwnerEmail,
   getUserTier,
-  BASIC_MONTHLY_LIMIT,
+  creditLimitForTier,
 } from "../storage";
 import { stripeService } from "../stripeService";
 import { requireAuth } from "../middlewares/requireAuth";
@@ -79,18 +79,18 @@ router.get("/me", requireAuth, async (req, res) => {
   const entitlement = await computeEntitlement(user);
   const tier = await getUserTier(user);
 
-  let usage:
-    | { used: number; limit: number; remaining: number; unlimited: boolean }
-    | null = null;
-  if (tier === "basic") {
+  // Free and Basic tiers are metered; Pro/Business/owner are unlimited.
+  const limit = creditLimitForTier(tier);
+  let usage: { used: number; limit: number; remaining: number; unlimited: boolean };
+  if (limit !== null) {
     const used = await storage.getUsageCount(user.id);
     usage = {
       used,
-      limit: BASIC_MONTHLY_LIMIT,
-      remaining: Math.max(0, BASIC_MONTHLY_LIMIT - used),
+      limit,
+      remaining: Math.max(0, limit - used),
       unlimited: false,
     };
-  } else if (tier) {
+  } else {
     usage = { used: 0, limit: 0, remaining: 0, unlimited: true };
   }
 

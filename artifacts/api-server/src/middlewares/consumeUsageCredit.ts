@@ -1,12 +1,12 @@
 import type { RequestHandler } from "express";
-import { storage, getUserTier, BASIC_MONTHLY_LIMIT } from "../storage";
+import { storage, getUserTier, creditLimitForTier } from "../storage";
 
 /**
- * Meters AI actions for the Basic plan. Owner and higher tiers (Pro, Business)
- * are unlimited and pass through untouched. For Basic users, each AI action
- * consumes one monthly credit; once the allowance is exhausted the request is
- * rejected with 402 + code "usage_limit_reached" so the client can prompt an
- * upgrade. Must run AFTER requireAuth + requireEntitlement (reads req.appUser).
+ * Meters the free "Ask Me Anything" chat. Free users get a small monthly
+ * allowance and Basic users get their monthly credits; once exhausted the
+ * request is rejected with 402 + code "usage_limit_reached" so the client can
+ * prompt an upgrade. Pro, Business and the owner are unlimited and pass through.
+ * Must run AFTER requireAuth (reads req.appUser).
  *
  * Fails open: if metering itself errors we allow the action rather than block a
  * paying user.
@@ -19,23 +19,21 @@ export const consumeUsageCredit: RequestHandler = async (req, res, next) => {
   }
   try {
     const tier = await getUserTier(user);
-    if (tier !== "basic") {
+    const limit = creditLimitForTier(tier);
+    if (limit === null) {
       next();
       return;
     }
-    const { consumed } = await storage.consumeBasicCredit(
-      user.id,
-      BASIC_MONTHLY_LIMIT,
-    );
+    const { consumed } = await storage.consumeBasicCredit(user.id, limit);
     if (!consumed) {
+      const error =
+        tier === "free"
+          ? `You've used all ${limit} free messages this month. Get a plan to keep chatting and unlock every tool.`
+          : `You've used all ${limit} of your monthly Basic credits. Upgrade to Pro for unlimited AI.`;
       res.status(402).json({
-        error: `You've used all ${BASIC_MONTHLY_LIMIT} of your monthly Basic credits. Upgrade to Pro for unlimited AI.`,
+        error,
         code: "usage_limit_reached",
-        usage: {
-          used: BASIC_MONTHLY_LIMIT,
-          limit: BASIC_MONTHLY_LIMIT,
-          remaining: 0,
-        },
+        usage: { used: limit, limit, remaining: 0 },
       });
       return;
     }

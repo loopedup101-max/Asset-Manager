@@ -9,6 +9,14 @@ const OWNER_EMAILS = (process.env.OWNER_EMAILS || "")
 /** Monthly AI-action allowance for the Basic plan. Higher tiers are unlimited. */
 export const BASIC_MONTHLY_LIMIT = 100;
 
+/**
+ * Free monthly allowance for signed-in users without a paid plan. Only the
+ * "Ask Me Anything" chat is usable on the free tier; every other tool is paid.
+ * These are NOT "credits" (credits come with a plan) — just a small free trial
+ * of the chat that prompts an upgrade once exhausted.
+ */
+export const FREE_MONTHLY_LIMIT = 10;
+
 /** Current usage period as "YYYY-MM" (UTC). Usage resets each calendar month. */
 function currentPeriod(): string {
   const now = new Date();
@@ -236,24 +244,36 @@ export async function userIsEntitled(user: User): Promise<boolean> {
   return false;
 }
 
-export type PlanTier = "owner" | "business" | "pro" | "basic";
+export type PlanTier = "owner" | "business" | "pro" | "basic" | "free";
 
 /**
- * The user's effective plan tier, or null if not entitled. Owner is always
- * "owner"; active subscribers map to their Stripe product's metadata.tier
- * (defaulting to "pro" if the tier metadata is missing/unknown).
+ * The user's effective plan tier. Owner is always "owner"; active subscribers
+ * map to their Stripe product's metadata.tier (defaulting to "pro" if the tier
+ * metadata is missing/unknown). Everyone else — signed in without an active
+ * subscription — is "free" (limited "Ask Me Anything" chat only).
  */
-export async function getUserTier(user: User): Promise<PlanTier | null> {
+export async function getUserTier(user: User): Promise<PlanTier> {
   if (user.role === "owner" || isOwnerEmail(user.email)) return "owner";
   if (user.stripeSubscriptionId) {
     const sub = (await storage.getSubscription(user.stripeSubscriptionId)) as
       | { status?: string }
       | null;
     const active = sub?.status === "active" || sub?.status === "trialing";
-    if (!active) return null;
-    const tier = await storage.getSubscriptionTier(user.stripeSubscriptionId);
-    if (tier === "basic" || tier === "pro" || tier === "business") return tier;
-    return "pro";
+    if (active) {
+      const tier = await storage.getSubscriptionTier(user.stripeSubscriptionId);
+      if (tier === "basic" || tier === "pro" || tier === "business") return tier;
+      return "pro";
+    }
   }
+  return "free";
+}
+
+/**
+ * Monthly metered allowance for a tier, or null when the tier is unlimited.
+ * Free and Basic are metered; Pro, Business and the owner are unlimited.
+ */
+export function creditLimitForTier(tier: PlanTier): number | null {
+  if (tier === "free") return FREE_MONTHLY_LIMIT;
+  if (tier === "basic") return BASIC_MONTHLY_LIMIT;
   return null;
 }

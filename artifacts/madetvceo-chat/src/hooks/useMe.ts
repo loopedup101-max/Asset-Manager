@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@clerk/react";
 
-export type PlanTier = "owner" | "business" | "pro" | "basic";
+export type PlanTier = "owner" | "business" | "pro" | "basic" | "free";
 
 export type Usage = {
   used: number;
