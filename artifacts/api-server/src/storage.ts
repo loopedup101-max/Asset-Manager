@@ -1,5 +1,5 @@
 import { db, usersTable, usageTable, type User } from "@workspace/db";
-import { and, eq, sql, isNull } from "drizzle-orm";
+import { and, eq, sql, isNull, or, lte } from "drizzle-orm";
 
 /** Emails that always get free, unlimited access to the entire app. */
 const HARDCODED_OWNER_EMAILS = ["bigfranknitty05@gmail.com"];
@@ -15,12 +15,16 @@ const OWNER_EMAILS = [
 export const BASIC_MONTHLY_LIMIT = 100;
 
 /**
- * Free time-trial for signed-in users without a paid plan: a one-time window of
- * full "Ask Me Anything" chat access that starts on their first message. Every
- * other tool is paid. When the window elapses we prompt an upgrade. This is NOT
- * "credits" (credits come with a plan) — just a short free trial of the chat.
+ * Free time-trial for signed-in users without a paid plan: a recurring window of
+ * full "Ask Me Anything" chat access. The window is FREE_TRIAL_MINUTES long and
+ * starts on their first message; once it elapses we prompt an upgrade. A fresh
+ * window is awarded automatically every FREE_TRIAL_RESET_HOURS. Every other tool
+ * is paid. This is NOT "credits" (credits come with a plan) — just free chat.
  */
 export const FREE_TRIAL_MINUTES = 10;
+
+/** How often a free user is awarded a fresh FREE_TRIAL_MINUTES window. */
+export const FREE_TRIAL_RESET_HOURS = 24;
 
 /** Current usage period as "YYYY-MM" (UTC). Usage resets each calendar month. */
 function currentPeriod(): string {
@@ -228,18 +232,35 @@ export class Storage {
   }
 
   /**
-   * Start the free time-trial clock on first use. Sets trialStartedAt = now only
-   * if it is currently null (idempotent), and returns the effective start time.
+   * Claim the current free time-trial window, starting a fresh one when needed.
+   * Atomically sets trialStartedAt = now if it is null (first use) OR older than
+   * FREE_TRIAL_RESET_HOURS (a new daily window is due), then returns the
+   * effective window start. If the user is still inside their current window the
+   * existing start time is returned unchanged.
    */
-  async startTrial(userId: string): Promise<Date> {
+  async claimTrialWindow(userId: string): Promise<Date> {
+    const now = new Date();
+    const cutoff = new Date(
+      now.getTime() - FREE_TRIAL_RESET_HOURS * 60 * 60 * 1000,
+    );
     const [row] = await db
       .update(usersTable)
-      .set({ trialStartedAt: new Date() })
-      .where(and(eq(usersTable.id, userId), isNull(usersTable.trialStartedAt)))
+      .set({ trialStartedAt: now })
+      .where(
+        and(
+          eq(usersTable.id, userId),
+          or(
+            isNull(usersTable.trialStartedAt),
+            // <= so this matches trialStatus()'s `sinceStartMs >= resetMs` reset
+            // boundary exactly — gate and display never disagree at the 24h mark.
+            lte(usersTable.trialStartedAt, cutoff),
+          ),
+        ),
+      )
       .returning();
     if (row?.trialStartedAt) return row.trialStartedAt;
     const existing = await this.getUser(userId);
-    return existing?.trialStartedAt ?? new Date();
+    return existing?.trialStartedAt ?? now;
   }
 }
 
@@ -313,14 +334,14 @@ export async function checkChatGate(
   const tier = await getUserTier(user);
 
   if (tier === "free") {
-    const startedAt = await storage.startTrial(user.id);
+    const startedAt = await storage.claimTrialWindow(user.id);
     const elapsedMs = Date.now() - startedAt.getTime();
     if (elapsedMs >= FREE_TRIAL_MINUTES * 60 * 1000) {
       return {
         ok: false,
         status: 402,
         body: {
-          error: `Your ${FREE_TRIAL_MINUTES}-minute free trial is up. Get a plan to keep chatting and unlock every tool.`,
+          error: `Your ${FREE_TRIAL_MINUTES} minutes of free chat are up. You'll get ${FREE_TRIAL_MINUTES} more free minutes every ${FREE_TRIAL_RESET_HOURS} hours — or get a plan to keep chatting now and unlock every tool.`,
           code: "usage_limit_reached",
         },
       };
@@ -351,30 +372,49 @@ export type TrialStatus = {
   totalSeconds: number;
   secondsRemaining: number;
   expired: boolean;
+  /** When the next free window unlocks (only set while expired & waiting). */
+  nextResetAt: string | null;
 };
 
 /**
  * Time-trial status for a free-tier user. Before the first message
  * (trialStartedAt null) the full window is shown but the clock is not running.
+ * Once a full FREE_TRIAL_RESET_HOURS has elapsed a fresh window is available, so
+ * we report it as not-yet-started again (the next message claims it).
  */
 export function trialStatus(user: User): TrialStatus {
   const totalSeconds = FREE_TRIAL_MINUTES * 60;
+  const resetMs = FREE_TRIAL_RESET_HOURS * 60 * 60 * 1000;
   if (!user.trialStartedAt) {
     return {
       startedAt: null,
       totalSeconds,
       secondsRemaining: totalSeconds,
       expired: false,
+      nextResetAt: null,
     };
   }
-  const elapsed = Math.floor(
-    (Date.now() - user.trialStartedAt.getTime()) / 1000,
-  );
+  const sinceStartMs = Date.now() - user.trialStartedAt.getTime();
+  // A full reset window has passed → a fresh free session is available.
+  if (sinceStartMs >= resetMs) {
+    return {
+      startedAt: null,
+      totalSeconds,
+      secondsRemaining: totalSeconds,
+      expired: false,
+      nextResetAt: null,
+    };
+  }
+  const elapsed = Math.floor(sinceStartMs / 1000);
   const secondsRemaining = Math.max(0, totalSeconds - elapsed);
+  const expired = secondsRemaining <= 0;
   return {
     startedAt: user.trialStartedAt.toISOString(),
     totalSeconds,
     secondsRemaining,
-    expired: secondsRemaining <= 0,
+    expired,
+    nextResetAt: expired
+      ? new Date(user.trialStartedAt.getTime() + resetMs).toISOString()
+      : null,
   };
 }

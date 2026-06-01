@@ -207,6 +207,7 @@ export function ChatPage() {
   const trial = me?.trial ?? null;
   const trialStartedAt = trial?.startedAt ?? null;
   const trialTotal = trial?.totalSeconds ?? null;
+  const trialNextResetAt = trial?.nextResetAt ?? null;
   const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
   useEffect(() => {
     if (!isFreeTier || trialTotal === null) {
@@ -228,6 +229,21 @@ export function ChatPage() {
   const trialExpired = isFreeTier && secondsLeft !== null && secondsLeft <= 0;
   const formatTime = (s: number) =>
     `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+
+  // When the free trial is used up, the server hands back when the next free
+  // window unlocks. Refetch /me at that moment so the chat re-enables itself
+  // automatically — even if the tab was left open the whole time.
+  useEffect(() => {
+    if (!trialExpired || !trialNextResetAt) return;
+    const ms = new Date(trialNextResetAt).getTime() - Date.now();
+    const refresh = () => queryClient.invalidateQueries({ queryKey: ["me"] });
+    if (ms <= 0) {
+      refresh();
+      return;
+    }
+    const t = setTimeout(refresh, ms + 1000);
+    return () => clearTimeout(t);
+  }, [trialExpired, trialNextResetAt, queryClient]);
 
   const { data: conversation } = useGetConversation(convId!, { query: { enabled: !!convId, queryKey: getGetConversationQueryKey(convId!) } });
   const { data: dbMessages, isLoading: messagesLoading } = useListMessages(convId!, { query: { enabled: !!convId, queryKey: getListMessagesQueryKey(convId!) } });
@@ -431,10 +447,15 @@ export function ChatPage() {
           <div className="max-w-3xl mx-auto">
             {trialExpired ? (
               <Link href="/pricing">
-                <div className="flex items-center justify-center gap-2.5 rounded-2xl border border-primary/40 bg-gradient-to-r from-primary/25 to-cyan-400/10 px-5 py-4 cursor-pointer hover:from-primary/35 transition-all text-center">
-                  <Sparkles className="w-5 h-5 text-cyan-300 shrink-0" />
-                  <span className="text-sm md:text-base font-semibold text-white">
-                    Your free trial time is up — get a plan to keep chatting & unlock every tool
+                <div className="flex flex-col items-center justify-center gap-1 rounded-2xl border border-primary/40 bg-gradient-to-r from-primary/25 to-cyan-400/10 px-5 py-4 cursor-pointer hover:from-primary/35 transition-all text-center">
+                  <span className="flex items-center gap-2.5">
+                    <Sparkles className="w-5 h-5 text-cyan-300 shrink-0" />
+                    <span className="text-sm md:text-base font-semibold text-white">
+                      Your free time is up — get a plan to keep chatting & unlock every tool
+                    </span>
+                  </span>
+                  <span className="text-xs text-cyan-200/70">
+                    You'll also get 10 more free minutes every 24 hours
                   </span>
                 </div>
               </Link>
@@ -571,10 +592,15 @@ export function ChatPage() {
         {isFreeTier && trialExpired ? (
           <div className="max-w-4xl mx-auto mb-3">
             <Link href="/pricing">
-              <div className="flex items-center justify-center gap-2 rounded-xl border border-primary/40 bg-primary/10 px-4 py-3 cursor-pointer hover:bg-primary/15 transition-all">
-                <Sparkles className="w-4 h-4 text-primary shrink-0" />
-                <span className="text-sm font-semibold text-foreground">
-                  Your free trial time is up — get a plan to keep chatting & unlock every tool
+              <div className="flex flex-col items-center justify-center gap-1 rounded-xl border border-primary/40 bg-primary/10 px-4 py-3 cursor-pointer hover:bg-primary/15 transition-all text-center">
+                <span className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-primary shrink-0" />
+                  <span className="text-sm font-semibold text-foreground">
+                    Your free time is up — get a plan to keep chatting & unlock every tool
+                  </span>
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  You'll also get 10 more free minutes every 24 hours
                 </span>
               </div>
             </Link>

@@ -15,6 +15,7 @@ export type Trial = {
   totalSeconds: number;
   secondsRemaining: number;
   expired: boolean;
+  nextResetAt: string | null;
 };
 
 export type Me = {
