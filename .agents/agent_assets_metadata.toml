@@ -47,3 +47,9 @@ id = "z_XLlWrotS6h5XD8tttgZ"
 uri = "file://artifacts/madetvceo-chat/public/brand/stripe-logo.png"
 type = "image"
 title = "Stripe Dashboard — Logo (wordmark)"
+
+[[outputs]]
+id = "9yEycAb5N6iz3kB6VUO_8"
+uri = "file://exports/madesuperai-page.jpg"
+type = "image"
+title = "Made Super AI — Homepage"
