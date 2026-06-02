@@ -169,7 +169,10 @@ export function BuilderPage() {
           App Builder
         </h1>
         <p className="text-slate-300 mt-1 font-medium">
-          Describe any app and the AI builds it for real — fully working, live preview, downloadable.
+          Describe a web app and the AI builds it for real — fully working, live preview, downloadable.
+        </p>
+        <p className="text-slate-400 text-sm mt-1.5 max-w-2xl">
+          Builds single-page web apps, tools, and games that run in any browser (your data saves on your device). It doesn't make App Store / Google Play mobile apps, or apps with their own login and server database.
         </p>
       </div>
 
