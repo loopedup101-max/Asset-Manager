@@ -21,11 +21,11 @@ import { PricingPlans } from "@/components/PricingPlans";
 
 const CAPABILITIES = [
   { icon: MessageSquare, label: "AI Agent Chat", desc: "Ask anything, get answers" },
-  { icon: Blocks, label: "App Builder", desc: "Ship apps from a prompt" },
+  { icon: Blocks, label: "App Builder", desc: "Build apps from a prompt" },
   { icon: Clapperboard, label: "Video Studio", desc: "Generate videos on demand" },
-  { icon: Share2, label: "Social Hub", desc: "Create & schedule posts" },
-  { icon: Wrench, label: "System Tools", desc: "Automate the busywork" },
-  { icon: Cpu, label: "Autonomous", desc: "It builds, ships, and runs" },
+  { icon: Share2, label: "Social Writer", desc: "AI drafts your posts" },
+  { icon: Wrench, label: "System Tools", desc: "Handy utilities" },
+  { icon: Cpu, label: "All-in-One AI", desc: "Every tool in one place" },
 ];
 
 const SHOWCASE = [
@@ -50,8 +50,8 @@ const SHOWCASE = [
   {
     img: socialImg,
     icon: Share2,
-    title: "Social Hub",
-    desc: "Create, schedule, and publish social content across every platform.",
+    title: "Social Writer",
+    desc: "AI writes posts and captions for any platform — ready to copy and paste wherever you post.",
   },
 ];
 
@@ -133,8 +133,8 @@ export function LandingPage() {
         </h1>
         <p className="text-base md:text-lg text-slate-300 max-w-xl font-medium mb-9">
           It doesn't just chat — it{" "}
-          <span className="text-cyan-300 font-semibold">builds, ships, and runs</span>{" "}
-          things for you. Apps, videos, social content, and more.
+          <span className="text-cyan-300 font-semibold">builds apps, makes videos</span>{" "}
+          and writes your content. All in one place.
         </p>
 
         <div className="flex items-center justify-center mb-14">
@@ -174,7 +174,7 @@ export function LandingPage() {
             One agent. Every tool.
           </h2>
           <p className="text-slate-400 max-w-lg mx-auto">
-            See what your AI super agent can build, create, and run for you.
+            See what your AI super agent can build and create for you.
           </p>
         </div>
         <div className="grid sm:grid-cols-2 gap-5 md:gap-6">

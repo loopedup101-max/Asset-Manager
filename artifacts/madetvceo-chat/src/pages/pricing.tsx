@@ -47,8 +47,8 @@ export function PricingPage() {
             Choose your plan
           </h1>
           <p className="text-sm md:text-base text-slate-300 max-w-xl mx-auto px-2">
-            Pick a plan to unlock the App Builder, Video Studio, Social Hub, and
-            System Tools — everything your AI super agent can build and run.
+            Pick a plan to unlock the App Builder, Video Studio, Social Writer,
+            and System Tools — everything your AI super agent can build and create.
           </p>
         </div>
 

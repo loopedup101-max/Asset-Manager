@@ -117,10 +117,10 @@ export function Sidebar({ className, isMobile = false }: { className?: string, i
 
       <div className="flex-1 overflow-y-auto px-3 space-y-2">
         {isLoading ? (
-          <div className="px-2 py-4 text-sm text-sidebar-foreground/50 animate-pulse font-medium">Loading network...</div>
+          <div className="px-2 py-4 text-sm text-sidebar-foreground/50 animate-pulse font-medium">Loading conversations...</div>
         ) : conversations?.length === 0 ? (
           <div className="px-2 py-8 text-center text-sm text-sidebar-foreground/50 font-medium">
-            No secure connections yet. Initialize one!
+            No conversations yet. Start one!
           </div>
         ) : (
           conversations?.map((conv) => (

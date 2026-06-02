@@ -23,12 +23,12 @@ interface ChatMessage {
 }
 
 const AGENT_CAPABILITIES = [
-  { icon: Code2, label: "Build Working Apps", desc: "Full-stack, deployed" },
-  { icon: Video, label: "Create & Post Videos", desc: "Script to upload" },
-  { icon: Share2, label: "Run Your Socials", desc: "Auto-post everywhere" },
+  { icon: Code2, label: "Build Working Apps", desc: "From a prompt" },
+  { icon: Video, label: "Create Videos", desc: "Script, voice & visuals" },
+  { icon: Share2, label: "Write Your Posts", desc: "Copy & paste to post" },
   { icon: Database, label: "Design Databases", desc: "Schemas & queries" },
   { icon: Cpu, label: "Write REST APIs", desc: "Production-ready" },
-  { icon: Wand2, label: "Automate Anything", desc: "Just ask" },
+  { icon: Wand2, label: "Answer Anything", desc: "Just ask" },
 ];
 
 function MascotWelcome() {

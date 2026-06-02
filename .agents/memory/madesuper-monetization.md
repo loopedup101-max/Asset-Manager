@@ -11,9 +11,10 @@ Model (confirmed via user_query after several rounds of clarification):
 - **Every other tool** (Social, Builder, Studio, Tools) is **paid** — visible but behind an upgrade wall.
 - Plans grant **credits that deplete** (Replit-style): show usage, prompt to upgrade when low/out.
   - Basic $19.99/mo = 100 credits/mo (metered by monthly action count)
-  - Pro $29/mo = unlimited
-  - Business $79/mo = unlimited
+  - Pro $49.99/mo = unlimited
+  - Business $99.99/mo = unlimited
   - Owner = free / unlimited
+  - LIVE Stripe product IDs (production): Basic=prod_UcepTHBho2asMC, Pro=prod_UceX3wD8Gp8mXq, Business=prod_UceXLsVuKRKzvW. Prices are read live from Stripe via `/api/stripe/products-with-prices`; the frontend does NOT hardcode prices. To edit a plan's checkout description, use code_execution: `listConnections('stripe')` → production connection → `stripe.products.update(id,{description})`. Never mention auto-post/scheduler wording (triggers Stripe restricted-business filter).
 - The free trial is **NOT** "credits" — credits only exist once a user has a plan. Free = time trial; Basic = monthly credit count.
 
 **Why:** The user iterated several times (5 uses → 10 uses → "10 minutes in the program" → finally "10 minutes, awarded again every 24 hours") and explicitly wanted an embedded countdown timer that prompts upgrade when time is up. The settled answer is: recurring time-based free chat trial → pay to remove the wait; all other tools always paid; Basic = depleting monthly credits with upgrade nudges.

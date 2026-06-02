@@ -38,7 +38,7 @@ const PLAN_COPY: Record<
     features: [
       "Full app access",
       "100 AI actions / month",
-      "App Builder, Video Studio & Social Hub",
+      "App Builder, Video Studio & Social Writer",
       "System Tools",
       "Upgrade anytime",
     ],
@@ -59,9 +59,8 @@ const PLAN_COPY: Record<
     icon: Rocket,
     features: [
       "Everything in Pro",
-      "Priority AI processing",
-      "Advanced automation",
-      "Higher usage limits",
+      "Unlimited AI actions",
+      "Highest priority processing",
       "Early access to new tools",
       "Priority support",
     ],
