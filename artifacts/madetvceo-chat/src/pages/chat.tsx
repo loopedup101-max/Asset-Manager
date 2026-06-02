@@ -88,8 +88,8 @@ function MascotWelcome() {
         MADE SUPER AI AGENT
       </h1>
       <p className="text-base md:text-lg text-slate-300 max-w-xl relative z-10 font-medium mb-10">
-        Your autonomous AI agent — it doesn't just chat, it{" "}
-        <span className="text-cyan-300 font-semibold">builds, ships, and runs</span> things for you. Ready to help.
+        Your AI agent — it doesn't just chat, it{" "}
+        <span className="text-cyan-300 font-semibold">builds apps, makes videos</span> and writes your content. Ready to help.
       </p>
 
       {/* capability matrix */}
