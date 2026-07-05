@@ -398,6 +398,19 @@ paths:
                 items:
                   $ref: "#/components/schemas/SentEmail"
 
+  /email/inbox/scan:
+    get:
+      operationId: scanInbox
+      tags: [email]
+      summary: Owner-only read-only scan of the connected inbox for cleanup
+      responses:
+        "200":
+          description: Inbox cleanup analysis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InboxScan"
+
 components:
   schemas:
     HealthStatus:
@@ -688,3 +701,52 @@ components:
           type: ["string", "null"]
         createdAt:
           type: string
+
+    InboxCategory:
+      type: object
+      required: [key, label, count, capped, gmailUrl]
+      properties:
+        key:
+          type: string
+        label:
+          type: string
+        count:
+          type: integer
+        capped:
+          type: boolean
+        gmailUrl:
+          type: string
+
+    InboxSender:
+      type: object
+      required: [email, count, gmailUrl]
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        count:
+          type: integer
+        unsubscribeUrl:
+          type: ["string", "null"]
+        gmailUrl:
+          type: string
+
+    InboxScan:
+      type: object
+      required: [connected, scannedCount, categories, topSenders]
+      properties:
+        connected:
+          type: boolean
+        emailAddress:
+          type: ["string", "null"]
+        scannedCount:
+          type: integer
+        categories:
+          type: array
+          items:
+            $ref: "#/components/schemas/InboxCategory"
+        topSenders:
+          type: array
+          items:
+            $ref: "#/components/schemas/InboxSender"

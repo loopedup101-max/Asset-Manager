@@ -3,7 +3,8 @@ import { eq, desc } from "drizzle-orm";
 import { db, sentEmailsTable } from "@workspace/db";
 import { openai } from "@workspace/integrations-openai-ai-server";
 import { GenerateEmailBody, SendEmailBody } from "@workspace/api-zod";
-import { getConnectedEmail, sendGmail } from "../lib/gmail";
+import { getConnectedEmail, sendGmail, scanInbox } from "../lib/gmail";
+import { isOwnerEmail } from "../storage";
 
 const router: IRouter = Router();
 
@@ -131,6 +132,26 @@ router.get("/email/sent", async (req, res) => {
       createdAt: r.createdAt.toISOString(),
     })),
   );
+});
+
+// Read-only inbox cleanup scan. OWNER ONLY: this reads the single connected
+// mailbox (the owner's), so it must never be exposed to other paying users.
+router.get("/email/inbox/scan", async (req, res) => {
+  const user = req.appUser!;
+  if (user.role !== "owner" && !isOwnerEmail(user.email)) {
+    res.status(403).json({ error: "Inbox cleanup is available to the account owner only." });
+    return;
+  }
+
+  try {
+    const result = await scanInbox();
+    res.json(result);
+  } catch (err) {
+    req.log.error({ err }, "inbox scan failed");
+    res.status(502).json({
+      error: "Couldn't scan the inbox. Make sure an email account is connected.",
+    });
+  }
 });
 
 export default router;

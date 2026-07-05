@@ -272,3 +272,29 @@ export interface SentEmail {
   createdAt: string;
 }
 
+export interface InboxCategory {
+  key: string;
+  label: string;
+  count: number;
+  capped: boolean;
+  gmailUrl: string;
+}
+
+export interface InboxSender {
+  name?: string;
+  email: string;
+  count: number;
+  /** @nullable */
+  unsubscribeUrl?: string | null;
+  gmailUrl: string;
+}
+
+export interface InboxScan {
+  connected: boolean;
+  /** @nullable */
+  emailAddress?: string | null;
+  scannedCount: number;
+  categories: InboxCategory[];
+  topSenders: InboxSender[];
+}
+

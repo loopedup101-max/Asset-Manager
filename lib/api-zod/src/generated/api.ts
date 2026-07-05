@@ -324,3 +324,27 @@ export const ListSentEmailsResponseItem = zod.object({
 export const ListSentEmailsResponse = zod.array(ListSentEmailsResponseItem)
 
 
+/**
+ * @summary Owner-only read-only scan of the connected inbox for cleanup
+ */
+export const ScanInboxResponse = zod.object({
+  "connected": zod.boolean(),
+  "emailAddress": zod.string().nullish(),
+  "scannedCount": zod.number(),
+  "categories": zod.array(zod.object({
+  "key": zod.string(),
+  "label": zod.string(),
+  "count": zod.number(),
+  "capped": zod.boolean(),
+  "gmailUrl": zod.string()
+})),
+  "topSenders": zod.array(zod.object({
+  "name": zod.string().optional(),
+  "email": zod.string(),
+  "count": zod.number(),
+  "unsubscribeUrl": zod.string().nullish(),
+  "gmailUrl": zod.string()
+}))
+})
+
+

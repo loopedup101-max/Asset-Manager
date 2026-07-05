@@ -24,6 +24,23 @@ reply to incoming mail, or send as an arbitrary customer's personal account.
   (connector requires_setup) and Meta app review (~1-3 weeks) before it can post for
   real — it is blocked on setup the user must do, so don't ship send-UI that can't send.
 
+# Inbox Cleanup Assistant — read-only, owner-only
+
+The `google-mail` connector grants only `gmail.readonly` + `labels` + `send`.
+`messages.modify` returns 403 ("insufficient permission"), so delete/archive/label
+changes are IMPOSSIBLE. Do not build any UI button that claims to delete/move mail.
+
+**What shipped instead:** `GET /email/inbox/scan` (owner-only guard: `role==="owner"
+|| isOwnerEmail`) returns category counts + noisiest senders + unsubscribe links +
+Gmail deep-links. The user does the actual deleting inside Gmail. Owner-only because
+it reads the single owner-connected mailbox (privacy) — enforce on the BACKEND, never
+trust frontend gating.
+
+**Accurate counts:** Gmail `resultSizeEstimate` is unreliable (returned ~201 for every
+query on the test account). Count real message IDs via `messages.list?maxResults=500`
+and set a `capped` flag from `nextPageToken` → UI shows "500+". Sender stats are a
+sample of ~150 recent inbox messages (labeled "in sample" so it's honest).
+
 # Raw-MIME email safety
 
 When building Gmail `messages.send` raw MIME by hand, header values (`To`, `Subject`,

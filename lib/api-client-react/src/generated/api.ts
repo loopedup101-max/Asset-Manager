@@ -30,6 +30,7 @@ import type {
   EmailStatus,
   GeneratedContent,
   HealthStatus,
+  InboxScan,
   Message,
   MessageInput,
   MessagePair,
@@ -1665,6 +1666,83 @@ export function useListSentEmails<TData = Awaited<ReturnType<typeof listSentEmai
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getListSentEmailsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getScanInboxUrl = () => {
+
+
+
+
+  return `/api/email/inbox/scan`
+}
+
+/**
+ * @summary Owner-only read-only scan of the connected inbox for cleanup
+ */
+export const scanInbox = async ( options?: RequestInit): Promise<InboxScan> => {
+
+  return customFetch<InboxScan>(getScanInboxUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getScanInboxQueryKey = () => {
+    return [
+    `/api/email/inbox/scan`
+    ] as const;
+    }
+
+
+export const getScanInboxQueryOptions = <TData = Awaited<ReturnType<typeof scanInbox>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof scanInbox>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getScanInboxQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof scanInbox>>> = ({ signal }) => scanInbox({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof scanInbox>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ScanInboxQueryResult = NonNullable<Awaited<ReturnType<typeof scanInbox>>>
+export type ScanInboxQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Owner-only read-only scan of the connected inbox for cleanup
+ */
+
+export function useScanInbox<TData = Awaited<ReturnType<typeof scanInbox>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof scanInbox>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getScanInboxQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 
