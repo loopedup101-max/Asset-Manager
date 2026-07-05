@@ -1,5 +1,5 @@
 import { formatDistanceToNow } from "date-fns";
-import { Plus, MessageSquare, Settings, Trash2, Menu, Zap, Share2, Wrench, Clapperboard, Blocks, Lock, Crown, LogOut, User as UserIcon, Sparkles } from "lucide-react";
+import { Plus, MessageSquare, Settings, Trash2, Menu, Zap, Share2, Wrench, Clapperboard, Blocks, Lock, Crown, LogOut, User as UserIcon, Sparkles, Mail } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useListConversations, useCreateConversation, useDeleteConversation, getListConversationsQueryKey } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -11,6 +11,7 @@ import { useMe } from "@/hooks/useMe";
 
 const NAV_ITEMS = [
   { href: "/social", label: "Social Hub", icon: Share2 },
+  { href: "/email", label: "Email Sender", icon: Mail },
   { href: "/builder", label: "App Builder", icon: Blocks },
   { href: "/studio", label: "Video Studio", icon: Clapperboard },
   { href: "/tools", label: "System Tools", icon: Wrench },

@@ -3,6 +3,7 @@ import healthRouter from "./health";
 import conversationsRouter from "./conversations";
 import statsRouter from "./stats";
 import socialRouter from "./social";
+import emailRouter from "./email";
 import aiChatRouter from "./ai-chat";
 import videoRouter from "./video";
 import builderRouter from "./builder";
@@ -39,5 +40,6 @@ router.use(requireEntitlement);
 router.use(videoRouter);
 router.use(builderRouter);
 router.use(socialRouter);
+router.use(emailRouter);
 
 export default router;

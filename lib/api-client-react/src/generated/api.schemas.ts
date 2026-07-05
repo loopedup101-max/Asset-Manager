@@ -227,3 +227,48 @@ export interface SocialStats {
   platformBreakdown?: SocialStatsPlatformBreakdownItem[];
 }
 
+export interface EmailStatus {
+  connected: boolean;
+  /** @nullable */
+  fromAddress?: string | null;
+}
+
+export type EmailGenerateInputTone = typeof EmailGenerateInputTone[keyof typeof EmailGenerateInputTone];
+
+
+export const EmailGenerateInputTone = {
+  professional: 'professional',
+  casual: 'casual',
+  friendly: 'friendly',
+  formal: 'formal',
+} as const;
+
+export interface EmailGenerateInput {
+  /** @minLength 1 */
+  prompt: string;
+  tone?: EmailGenerateInputTone;
+}
+
+export interface EmailDraft {
+  subject: string;
+  body: string;
+}
+
+export interface EmailSendInput {
+  /** @minLength 3 */
+  to: string;
+  subject: string;
+  /** @minLength 1 */
+  body: string;
+}
+
+export interface SentEmail {
+  id: number;
+  toAddress: string;
+  subject: string;
+  body: string;
+  /** @nullable */
+  fromAddress?: string | null;
+  createdAt: string;
+}
+

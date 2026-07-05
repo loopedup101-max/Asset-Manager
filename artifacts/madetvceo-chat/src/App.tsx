@@ -37,6 +37,7 @@ import NotFound from "@/pages/not-found";
 // first load only downloads what's needed. They stream in on navigation.
 const SettingsPage = lazy(() => import("@/pages/settings").then((m) => ({ default: m.SettingsPage })));
 const SocialPage = lazy(() => import("@/pages/social").then((m) => ({ default: m.SocialPage })));
+const EmailPage = lazy(() => import("@/pages/email").then((m) => ({ default: m.EmailPage })));
 const ToolsPage = lazy(() => import("@/pages/tools").then((m) => ({ default: m.ToolsPage })));
 const StudioPage = lazy(() => import("@/pages/studio").then((m) => ({ default: m.StudioPage })));
 const BuilderPage = lazy(() => import("@/pages/builder").then((m) => ({ default: m.BuilderPage })));
@@ -373,6 +374,13 @@ function ClerkProviderWithRoutes() {
               {() => (
                 <ToolRoute>
                   <SocialPage />
+                </ToolRoute>
+              )}
+            </Route>
+            <Route path="/email">
+              {() => (
+                <ToolRoute>
+                  <EmailPage />
                 </ToolRoute>
               )}
             </Route>

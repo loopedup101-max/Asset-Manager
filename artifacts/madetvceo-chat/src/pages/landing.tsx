@@ -8,6 +8,7 @@ import {
   Blocks,
   Clapperboard,
   Share2,
+  Mail,
   Wrench,
   MessageSquare,
   Zap,
@@ -17,6 +18,7 @@ import chatImg from "@/assets/features/chat.webp";
 import builderImg from "@/assets/features/builder.webp";
 import studioImg from "@/assets/features/studio.webp";
 import socialImg from "@/assets/features/social.webp";
+import emailImg from "@/assets/features/email.png";
 import { PricingPlans } from "@/components/PricingPlans";
 
 const CAPABILITIES = [
@@ -24,6 +26,7 @@ const CAPABILITIES = [
   { icon: Blocks, label: "App Builder", desc: "Build apps from a prompt" },
   { icon: Clapperboard, label: "Video Studio", desc: "Generate videos on demand" },
   { icon: Share2, label: "Social Writer", desc: "AI drafts your posts" },
+  { icon: Mail, label: "Email Sender", desc: "Draft & send real emails" },
   { icon: Wrench, label: "System Tools", desc: "Handy utilities" },
   { icon: Cpu, label: "All-in-One AI", desc: "Every tool in one place" },
 ];
@@ -52,6 +55,12 @@ const SHOWCASE = [
     icon: Share2,
     title: "Social Writer",
     desc: "AI writes posts and captions for any platform — ready to copy and paste wherever you post.",
+  },
+  {
+    img: emailImg,
+    icon: Mail,
+    title: "Email Sender",
+    desc: "Draft an email with AI and send it for real, straight from the app — no copy-paste needed.",
   },
 ];
 

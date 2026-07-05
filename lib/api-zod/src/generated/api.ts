@@ -269,3 +269,58 @@ export const GetSocialStatsResponse = zod.object({
 })
 
 
+/**
+ * @summary Whether an email account is connected and its from address
+ */
+export const GetEmailStatusResponse = zod.object({
+  "connected": zod.boolean(),
+  "fromAddress": zod.string().nullish()
+})
+
+
+/**
+ * @summary AI-draft an email (subject + body)
+ */
+
+
+
+export const GenerateEmailBody = zod.object({
+  "prompt": zod.string().min(1),
+  "tone": zod.enum(['professional', 'casual', 'friendly', 'formal']).optional()
+})
+
+export const GenerateEmailResponse = zod.object({
+  "subject": zod.string(),
+  "body": zod.string()
+})
+
+
+/**
+ * @summary Send an email from the connected account
+ */
+export const sendEmailBodyToMin = 3;
+
+
+
+
+export const SendEmailBody = zod.object({
+  "to": zod.string().min(sendEmailBodyToMin),
+  "subject": zod.string(),
+  "body": zod.string().min(1)
+})
+
+
+/**
+ * @summary List emails this user has sent
+ */
+export const ListSentEmailsResponseItem = zod.object({
+  "id": zod.number(),
+  "toAddress": zod.string(),
+  "subject": zod.string(),
+  "body": zod.string(),
+  "fromAddress": zod.string().nullish(),
+  "createdAt": zod.string()
+})
+export const ListSentEmailsResponse = zod.array(ListSentEmailsResponseItem)
+
+

@@ -332,6 +332,72 @@ paths:
               schema:
                 $ref: "#/components/schemas/SocialStats"
 
+  /email/status:
+    get:
+      operationId: getEmailStatus
+      tags: [email]
+      summary: Whether an email account is connected and its from address
+      responses:
+        "200":
+          description: Email connection status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmailStatus"
+
+  /email/generate:
+    post:
+      operationId: generateEmail
+      tags: [email]
+      summary: AI-draft an email (subject + body)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmailGenerateInput"
+      responses:
+        "200":
+          description: Drafted email
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmailDraft"
+
+  /email/send:
+    post:
+      operationId: sendEmail
+      tags: [email]
+      summary: Send an email from the connected account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EmailSendInput"
+      responses:
+        "201":
+          description: Email sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SentEmail"
+
+  /email/sent:
+    get:
+      operationId: listSentEmails
+      tags: [email]
+      summary: List emails this user has sent
+      responses:
+        "200":
+          description: Sent emails
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SentEmail"
+
 components:
   schemas:
     HealthStatus:
@@ -563,3 +629,62 @@ components:
                 type: string
               count:
                 type: integer
+
+    EmailStatus:
+      type: object
+      required: [connected]
+      properties:
+        connected:
+          type: boolean
+        fromAddress:
+          type: ["string", "null"]
+
+    EmailGenerateInput:
+      type: object
+      required: [prompt]
+      properties:
+        prompt:
+          type: string
+          minLength: 1
+        tone:
+          type: string
+          enum: [professional, casual, friendly, formal]
+
+    EmailDraft:
+      type: object
+      required: [subject, body]
+      properties:
+        subject:
+          type: string
+        body:
+          type: string
+
+    EmailSendInput:
+      type: object
+      required: [to, subject, body]
+      properties:
+        to:
+          type: string
+          minLength: 3
+        subject:
+          type: string
+        body:
+          type: string
+          minLength: 1
+
+    SentEmail:
+      type: object
+      required: [id, toAddress, subject, body, createdAt]
+      properties:
+        id:
+          type: integer
+        toAddress:
+          type: string
+        subject:
+          type: string
+        body:
+          type: string
+        fromAddress:
+          type: ["string", "null"]
+        createdAt:
+          type: string
