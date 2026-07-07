@@ -59,3 +59,9 @@ id = "9yEycAb5N6iz3kB6VUO_8"
 uri = "file://exports/madesuperai-page.jpg"
 type = "image"
 title = "Made Super AI — Homepage"
+
+[[outputs]]
+id = "D85XIFy-87vgKX6iASF7q"
+uri = "file://exports/made-super-ai-database.zip"
+type = "unspecified"
+title = "Made Super AI — Database Export + Readme"
